@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Freight Gauntlet Leaderboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    body { margin: 0; padding: 0; background-color: #0e1a28; color: #f5f5f5; font-family: "Poppins", sans-serif; }
+    h1 { margin: 0; padding: 20px 0; text-align: center; font-size: 2em; font-weight: 700; background-color: #132a4e; position: sticky; top: 0; z-index: 1000; }
+    .container { width: 90%; max-width: 1200px; margin: 0 auto; padding: 20px; }
+    .team-card { background-color: #1b2a3c; border-radius: 12px; margin-bottom: 25px; box-shadow: 0 4px 12px rgba(0,0,0,0.4); overflow: hidden; }
+    .team-header { padding: 14px 20px; background: linear-gradient(135deg, #132a4e 0%, #0d3b66 100%); display: flex; justify-content: space-between; align-items: center; }
+    .team-header h2 { font-size: 1.2em; font-weight: 600; margin: 0; }
+    .team-header .total-score { font-size: 1em; background-color: #274060; padding: 6px 12px; border-radius: 8px; }
+    .member-list { list-style: none; margin: 0; padding: 0; }
+    .member { padding: 12px 20px; border-top: 1px solid #274060; display: flex; justify-content: space-between; align-items: center; cursor: pointer; transition: background-color 0.3s ease; }
+    .member:nth-child(odd) { background-color: #16243b; }
+    .member:hover { background-color: #213559; }
+    .member .name { font-size: 1em; display: flex; align-items: center; }
+    .member .score { font-weight: bold; }
+    .icon { margin-right: 8px; font-size: 1.1em; }
+    details summary::-webkit-details-marker { display: none; }
+    details { background-color: #0e1a28; }
+    summary { list-style: none; outline: none; }
+    .details-content { padding: 12px 24px; background-color: #0e1a28; border-top: 1px solid #274060; display: none; }
+    details[open] .details-content { display: block; }
+    .details-content ul { list-style: none; margin: 0; padding: 0; }
+    .details-content li { margin: 4px 0; font-size: 0.9em; }
+    .details-content p { margin: 0; font-size: 0.9em; }
+    /* MVP medal colors */
+    .gold .name, .gold .score { color: #FFD700; }
+    .silver .name, .silver .score { color: #C0C0C0; }
+    .bronze .name, .bronze .score { color: #CD7F32; }
+    .eliminated .name, .eliminated .score { color: #FF4C4C; }
+    /* Animation for score increase */
+    .score-change { animation: scoreFlash 1s ease-in-out; }
+    @keyframes scoreFlash { 0% { background-color: #274060; } 50% { background-color: #1b2a3c; } 100% { background-color: transparent; } }
+    /* Rule section styling */
+    .rules-section { margin-top: 40px; }
+    .rules-section summary { cursor: pointer; background-color: #1b2a3c; padding: 14px 20px; border-radius: 12px; font-size: 1.1em; font-weight: 600; }
+    .rules-content { padding: 16px 20px; background-color: #16243b; border-radius: 0 0 12px 12px; border-top: 1px solid #274060; }
+    .rules-content h3 { margin-top: 16px; font-size: 1.1em; font-weight: 600; }
+    .rules-content p, .rules-content li { font-size: 0.9em; line-height: 1.4; }
+    .rules-content ul { margin: 0 0 10px 20px; padding: 0; }
+    /* Top 5 leaderboard styling */
+    .top-card { background-color: #1b2a3c; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.4); padding: 16px 20px; margin-bottom: 25px; }
+    .top-card h3 { margin-top: 0; margin-bottom: 10px; font-size: 1.4em; font-weight: 600; }
+    .top-list { list-style: none; margin: 0; padding: 0; }
+    .top-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #274060; }
+    .top-item:last-child { border-bottom: none; }
+    .rank { font-weight: bold; margin-right: 8px; }
+  </style>
+</head>
+<body>
+  <h1>Freight Gauntlet: Haul or Nothing</h1>
+  <!-- Top 5 competition-wide leaderboard -->
+  <div id="top-leaderboard" style="margin: 20px auto; width: 90%; max-width: 1200px;"></div>
+  <div class="container">
+    <!-- Score Update Instructions:
+      To update participant scores, edit the JavaScript data object named `teams` in the <script> section near the bottom of this file.
+      Update the `score` and `details` fields for each player. Then commit and push this file.
+    -->
+    <div id="leaderboard"></div>
+    <div class="rules-section">
+      <details>
+        <summary>Competition Rules & Scoring Guide</summary>
+        <div class="rules-content">
+          <h3>Competition Structure</h3>
+          <p>Freight Gauntlet is a 2-week, 2-round competition. Each of 11 teams starts with four players, except Team 11 which has five. Individual scores accumulate to team totals. The bottom five individual scorers after week 1 are eliminated. Teams continue to compete in week 2.</p>
+          <p>Each team elects a scorekeeper who submits daily scores to Andrew Connellan.</p>
+          <h3>BR/Load Metric</h3>
+          <p>BR/Load is the average booked revenue per load. If your average is above $382, you earn 50 points. If it’s below, you get zero.</p>
+          <h3>Assist</h3>
+          <p>Assists are credited for helping your team—answering questions, quoting, conference calls, after-hours work, and training. Submit as “Assist: Description”. LAE &gt;5k and Vets earn 5 points per approved assist.</p>
+          <h3>Scoring by Role</h3>
+          <ul>
+            <li><strong>LAET:</strong> 250 calls = Qualifier; +25 pts for each additional 50 calls above 250; +5 pts per covered load or group cover; +25 pts per prospecting close with &lt;$382 BR; +50 pts per prospecting close with &gt;$382 BR; +50 pts if BR/Load average &gt; $382.</li>
+            <li><strong>Proving Grounds:</strong> 350 calls = Qualifier; +15 pts per additional 25 calls above 350; +20 pts per close; +25 pts per $250 revenue above plan; +50 pts if BR/Load average &gt; $382.</li>
+            <li><strong>Junior/LAE &lt;5k:</strong> 250 calls = Qualifier; +15 pts per additional 25 calls above 250; +20 pts per close; +25 pts per $500 revenue above plan; +50 pts if BR/Load average &gt; $382.</li>
+            <li><strong>LAE &gt;5k:</strong> 50 calls = Qualifier; +20 pts per 25 calls above 50; +25 pts per $250 book revenue above trailing 12; +20 pts per close; +5 pts per assist; +50 pts if BR/Load average &gt; $382.</li>
+            <li><strong>Vet (5+ years):</strong> +25 pts per $750 YOY growth; +25 pts per 15 calls; +5 pts per assist; +50 pts if BR/Load average &gt; $382.</li>
+          </ul>
+          <h3>Elimination</h3>
+          <p>At the end of week 1, the bottom five individual scorers are marked with a ☠️ and are eliminated.</p>
+        </div>
+      </details>
+    </div>
+  </div>
+  <script>
+    // Data structure representing teams, players, scores, and details.
+    const teams = [
+  {
+    "name": "Team 1",
+    "members": [
+      {
+        "name": "Nick Nguyen",
+        "score": 0,
+        "details": []
+      },
+      {
+        "name": "Clarens Legagneur",
+        "score": 0,
+        "details": []
+      },
+      {
+        "name": "Aaron Wofford",
+        "score": 0,
+        "details": []
+      },
+      {
+        "name": "Bobby Meyer",
+        "score": 0,
+        "details": []
+      }
+    ]
+  },
+  {
+    "name": "Team 2",
+    "members": [
+      {
+        "name": "Jordan DeWitt (PG)",
+        "score": 70,
+        "details": [
+          {
+            "label": "1 Close",
+            "points": 20
+          },
+          {
+            "label": "$700 Above Plan",
+            "points": 50
+          }
+        ]
+      },
+      {
+        "name": "Hau Cing",
+        "score": 85,
+        "details": [
+          {
+            "label": "254 Calls (Qualifier)",
+            "points": 0
+          },
+          {
+            "label": "17 Covers",
+            "points": 85
+          }
+        ]
+      },
+      {
+        "name": "Emily Smith",
+        "score": 0,
+        "details": []
+      },
+      {
+        "name": "Nick Peffenberger",
+        "score": 0,
+        "details": []
+      }
+    ]
+  },
+  {
+    "name": "Team 3",
+    "members": [
+      {
+        "name": "Jack Sullivan",
+        "score": 125,
+        "details": [
+          {
+            "label": "$1280 Above Plan",
+            "points": 125
+          }
+        ]
+      },
+      {
+        "name": "Henry Baker",
+        "score": 115,
+        "details": [
+          {
+            "label": "439 Calls > 250",
+            "points": 75
+          },
+          {
+            "label": "8 Covers",
+            "points": 40
+          }
+        ]
+      },
+      {
+        "name": "Jared Kohn",
+        "score": 125,
+        "details": [
+          {
+            "label": "492 Calls > 250",
+            "points": 100
+          },
+          {
+            "label": "5 Covers",
+            "points": 25
+          }
+        ]
+      },
+      {
+        "name": "Rob Hudson",
+        "score": 0,
+        "details": []
+      }
+    ]
+  },
+  {
+    "name": "Team 4",
+    "members": [
+      {
+        "name": "Jacob Archer",
+        "score": 20,
+        "details": [
+          {
+            "label": "1 Close",
+            "points": 20
+          }
+        ]
+      },
+      {
+        "name": "Jack Heyob",
+        "score": 0,
+        "details": []
+      },
+      {
+        "name": "Jared Miller",
+        "score": 0,
+        "details": []
+      },
+      {
+        "name": "Jennifer Fike",
+        "score": 0,
+        "details": []
+      }
+    ]
+  },
+  {
+    "name": "Team 5",
+    "members": [
+      {
+        "name": "James Holcomb",
+        "score": 15,
+        "details": [
+          {
+            "label": "3 Assists",
+            "points": 15
+          }
+        ]
+      },
+      {
+        "name": "Matias Janice",
+        "score": 90,
+        "details": [
+          {
+            "label": "$1500 Above Plan",
+            "points": 70
+          },
+          {
+            "label": "1 Close",
+            "points": 20
+          }
+        ]
+      },
+      {
+        "name": "Joey 'Covers' Kisselle",
+        "score": 30,
+        "details": [
+          {
+            "label": "331 Calls > 250",
+            "points": 25
+          },
+          {
+            "label": "1 Group Cover",
+            "points": 5
+          }
+        ]
+      },
+      {
+        "name": "Joseph Wolf",
+        "score": 125,
+        "details": [
+          {
+            "label": "549 Calls > 250",
+            "points": 125
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "name": "Team 6",
+    "members": [
+      {
+        "name": "Vince Waters",
+        "score": 25,
+        "details": [
+          {
+            "label": "$986 YOY Growth",
+            "points": 25
+          }
+        ]
+      },
+      {
+        "name": "James McMullen",
+        "score": 0,
+        "details": []
+      },
+      {
+        "name": "Maddie Evanchik",
+        "score": 0,
+        "details": []
+      },
+      {
+        "name": "Matthew Snawder",
+        "score": 0,
+        "details": []
+      }
+    ]
+  },
+  {
+    "name": "Team 7",
+    "members": [
+      {
+        "name": "Andrew Connellan",
+        "score": 180,
+        "details": [
+          {
+            "label": "6 Assists",
+            "points": 30
+          },
+          {
+            "label": "$1729 > T12",
+            "points": 150
+          }
+        ]
+      },
+      {
+        "name": "Sydney Tiberghien",
+        "score": 0,
+        "details": []
+      },
+      {
+        "name": "Kyle Taylor",
+        "score": 0,
+        "details": []
+      },
+      {
+        "name": "Eric Isaacs",
+        "score": 0,
+        "details": []
+      }
+    ]
+  },
+  {
+    "name": "Team 8",
+    "members": [
+      {
+        "name": "Miguel Cordoba",
+        "score": 165,
+        "details": [
+          {
+            "label": "354 Calls > 250",
+            "points": 50
+          },
+          {
+            "label": "21 Covers",
+            "points": 105
+          },
+          {
+            "label": "2 Group Covers",
+            "points": 10
+          }
+        ]
+      },
+      {
+        "name": "Anthony Gordon",
+        "score": 0,
+        "details": []
+      },
+      {
+        "name": "Brian Braverman",
+        "score": 0,
+        "details": []
+      },
+      {
+        "name": "Quinn Fashingbauer",
+        "score": 0,
+        "details": []
+      }
+    ]
+  },
+  {
+    "name": "Team 9",
+    "members": [
+      {
+        "name": "Rachel Hack",
+        "score": 235,
+        "details": [
+          {
+            "label": "572 Calls > 250",
+            "points": 150
+          },
+          {
+            "label": "15 Covers",
+            "points": 75
+          },
+          {
+            "label": "2 Group Covers",
+            "points": 10
+          }
+        ]
+      },
+      {
+        "name": "Anthony Fambry",
+        "score": 0,
+        "details": []
+      },
+      {
+        "name": "Seth Klink",
+        "score": 0,
+        "details": []
+      },
+      {
+        "name": "Andy Hayes",
+        "score": 0,
+        "details": []
+      }
+    ]
+  },
+  {
+    "name": "Team 10",
+    "members": [
+      {
+        "name": "Brandon Fuller",
+        "score": 0,
+        "details": []
+      },
+      {
+        "name": "Dustin Schneider",
+        "score": 0,
+        "details": []
+      },
+      {
+        "name": "Justin Bagent",
+        "score": 0,
+        "details": []
+      },
+      {
+        "name": "John Mcnulty",
+        "score": 0,
+        "details": []
+      }
+    ]
+  },
+  {
+    "name": "Team 11",
+    "members": [
+      {
+        "name": "Ryan Monahan",
+        "score": 90,
+        "details": [
+          {
+            "label": "442 Calls > 250",
+            "points": 75
+          },
+          {
+            "label": "3 Covers",
+            "points": 15
+          }
+        ]
+      },
+      {
+        "name": "Brian Amshoff",
+        "score": 0,
+        "details": []
+      },
+      {
+        "name": "Courtney Monroy",
+        "score": 0,
+        "details": []
+      },
+      {
+        "name": "Danny Covol",
+        "score": 0,
+        "details": []
+      },
+      {
+        "name": "TBD (Fifth Member)",
+        "score": 0,
+        "details": []
+      }
+    ]
+  }
+];
+    // Function to render the leaderboard dynamically
+    function renderLeaderboard() {
+      // Compute totals, top 3 global, and bottom 5 global
+      let allMembers = [];
+      teams.forEach(team => {
+        let total = 0;
+        team.members.forEach(member => {
+          total += member.score;
+          allMembers.push({ name: member.name, score: member.score, team: team.name });
+        });
+        team.total = total;
+      });
+      // Sort for top 3 and bottom 5
+      const sortedDesc = [...allMembers].sort((a, b) => b.score - a.score);
+      const top3 = sortedDesc.slice(0, 3).map(m => m.name);
+      const top5List = sortedDesc.slice(0, 5);
+      const sortedAsc = [...allMembers].sort((a, b) => a.score - b.score || a.name.localeCompare(b.name));
+      // Determine all players who tie for the lowest score.
+      const minScore = sortedAsc.length > 0 ? sortedAsc[0].score : 0;
+      const bottom5 = sortedAsc.filter(m => m.score === minScore).map(m => m.name);
+      const leaderboardEl = document.getElementById("leaderboard");
+      leaderboardEl.innerHTML = "";
+      // Render top 5 competition-wide leaderboard
+      const topContainer = document.getElementById('top-leaderboard');
+      topContainer.innerHTML = '';
+      if (top5List.length > 0) {
+        const topCard = document.createElement('div');
+        topCard.className = 'top-card';
+        const topTitle = document.createElement('h3');
+        topTitle.textContent = 'Top 5 Scorers Overall';
+        topCard.appendChild(topTitle);
+        const topListEl = document.createElement('ul');
+        topListEl.className = 'top-list';
+        top5List.forEach((entry, idx) => {
+          const li = document.createElement('li');
+          li.className = 'top-item';
+          const rankSpan = document.createElement('span');
+          rankSpan.className = 'rank';
+          rankSpan.textContent = `#${idx + 1}`;
+          const nameSpan = document.createElement('span');
+          nameSpan.textContent = entry.name;
+          const scoreSpan = document.createElement('span');
+          scoreSpan.textContent = `${entry.score} pts`;
+          li.appendChild(rankSpan);
+          li.appendChild(nameSpan);
+          li.appendChild(scoreSpan);
+          topListEl.appendChild(li);
+        });
+        topCard.appendChild(topListEl);
+        topContainer.appendChild(topCard);
+      }
+      // Build each team card
+      teams.forEach(team => {
+        // Determine team MVP (highest scorer)
+        let mvpName = null;
+        let mvpScore = -1;
+        team.members.forEach(member => {
+          if (member.score > mvpScore) {
+            mvpScore = member.score;
+            mvpName = member.name;
+          }
+        });
+        // Create card
+        const card = document.createElement("div");
+        card.className = "team-card";
+        // Header
+        const header = document.createElement("div");
+        header.className = "team-header";
+        const h2 = document.createElement("h2");
+        h2.textContent = team.name;
+        const totalSpan = document.createElement("div");
+        totalSpan.className = "total-score";
+        totalSpan.textContent = `Total: ${team.total} pts`;
+        header.appendChild(h2);
+        header.appendChild(totalSpan);
+        // Member list
+        const ul = document.createElement("ul");
+        ul.className = "member-list";
+        team.members.forEach(member => {
+          const li = document.createElement("li");
+          const details = document.createElement("details");
+          const summary = document.createElement("summary");
+          summary.className = "member";
+          // Determine classes for MVP medals and elimination
+          let classes = "";
+          if (top3.includes(member.name)) {
+            const index = top3.indexOf(member.name);
+            if (index === 0) classes = "gold";
+            else if (index === 1) classes = "silver";
+            else if (index === 2) classes = "bronze";
+          }
+          if (bottom5.includes(member.name)) {
+            classes = "eliminated";
+          }
+          // Determine icons: Crown for team MVP, medal for top3, skull for bottom5
+          let icon = "";
+          // Medal icons for global top 3 if not eliminated
+          if (top3.includes(member.name)) {
+            const idx = top3.indexOf(member.name);
+            icon = idx === 0 ? "🥇" : idx === 1 ? "🥈" : "🥉";
+          } else if (member.name === mvpName && member.score > 0) {
+            icon = "👑";
+          }
+          if (bottom5.includes(member.name)) {
+            icon = "☠️";
+          }
+          const nameDiv = document.createElement("div");
+          nameDiv.className = "name";
+          if (icon) {
+            const spanIcon = document.createElement("span");
+            spanIcon.className = "icon";
+            spanIcon.textContent = icon;
+            nameDiv.appendChild(spanIcon);
+          }
+          const nameText = document.createElement("span");
+          nameText.textContent = member.name;
+          nameDiv.appendChild(nameText);
+          const scoreDiv = document.createElement("div");
+          scoreDiv.className = "score";
+          scoreDiv.textContent = `${member.score} pts`;
+          // Apply class to summary for elimination or medal coloring
+          if (classes) summary.classList.add(classes);
+          summary.appendChild(nameDiv);
+          summary.appendChild(scoreDiv);
+          // Details content
+          const detailsContent = document.createElement("div");
+          detailsContent.className = "details-content";
+          if (member.details && member.details.length > 0) {
+            const ulDetails = document.createElement("ul");
+            member.details.forEach(item => {
+              const liItem = document.createElement("li");
+              liItem.textContent = `${item.label}: ${item.points} pts`;
+              ulDetails.appendChild(liItem);
+            });
+            const liTotal = document.createElement("li");
+            liTotal.innerHTML = `<strong>Total</strong>: ${member.score} pts`;
+            ulDetails.appendChild(liTotal);
+            detailsContent.appendChild(ulDetails);
+          } else {
+            const p = document.createElement("p");
+            p.textContent = "No points awarded yet.";
+            detailsContent.appendChild(p);
+          }
+          details.appendChild(summary);
+          details.appendChild(detailsContent);
+          li.appendChild(details);
+          ul.appendChild(li);
+        });
+        card.appendChild(header);
+        card.appendChild(ul);
+        leaderboardEl.appendChild(card);
+      });
+    }
+    // Render on page load
+    renderLeaderboard();
+  </script>
+</body>
+</html>
