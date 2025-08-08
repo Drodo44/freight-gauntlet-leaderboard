@@ -52,18 +52,35 @@
     .top-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #274060; }
     .top-item:last-child { border-bottom: none; }
     .rank { font-weight: bold; margin-right: 8px; }
+    /* Container for the top-level leaderboards (top 5 and team leaderboard) */
+    .leaderboards {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 2rem;
+      margin-top: 20px;
+    }
+    .leaderboards > div {
+      flex: 1 1 50%;
+    }
+    /* Add spacing below the cards in the leaderboards container */
+    .leaderboards .top-card {
+      margin-bottom: 20px;
+    }
   </style>
 </head>
 <body>
   <h1>Freight Gauntlet: Haul or Nothing</h1>
-  <!-- Top 5 competition-wide leaderboard -->
-  <div id="top-leaderboard" style="margin: 20px auto; width: 90%; max-width: 1200px;"></div>
   <div class="container">
-    <!-- Score Update Instructions:
-      To update participant scores, edit the JavaScript data object named `teams` in the <script> section near the bottom of this file.
-      Update the `score` and `details` fields for each player. Then commit and push this file.
-    -->
+    <!-- Top row: Top 5 and Team Leaderboard side by side -->
+    <div class="leaderboards">
+      <div id="top-leaderboard"></div>
+      <div id="team-board"></div>
+    </div>
+    <!-- Bottom: Individual team cards -->
     <div id="leaderboard"></div>
+    <!-- Score Update Instructions (hidden in HTML comments for maintainers) -->
+    <!-- To update participant scores, edit the JavaScript data object named `teams` in the <script> section near the bottom of this file. Update the `score` and `details` fields for each player. Then commit and push this file. -->
+    <!-- Rules section remains below the leaderboards -->
     <div class="rules-section">
       <details>
         <summary>Competition Rules & Scoring Guide</summary>
@@ -90,6 +107,20 @@
     </div>
   </div>
   <script>
+    // Accent colors array for team cards (visual enhancement)
+    const accentColors = [
+      '#5A67D8', // Indigo
+      '#ED8936', // Orange
+      '#48BB78', // Green
+      '#D53F8C', // Pink
+      '#4299E1', // Blue
+      '#ECC94B', // Yellow
+      '#F6AD55', // Peach
+      '#4FD1C5', // Teal
+      '#9F7AEA', // Purple
+      '#38B2AC', // Teal Blue
+      '#F56565'  // Red
+    ];
     // Data structure representing teams, players, scores, and details.
     const teams = [
   {
@@ -489,7 +520,7 @@
         "details": []
       },
       {
-        "name": "TBD (Fifth Member)",
+        "name": "Sarah Miracle",
         "score": 0,
         "details": []
       }
@@ -500,7 +531,7 @@
     function renderLeaderboard() {
       // Compute totals, top 3 global, and bottom 5 global
       let allMembers = [];
-      teams.forEach(team => {
+      teams.forEach((team, tIndex) => {
         let total = 0;
         team.members.forEach(member => {
           total += member.score;
@@ -518,6 +549,39 @@
       const bottom5 = sortedAsc.filter(m => m.score === minScore).map(m => m.name);
       const leaderboardEl = document.getElementById("leaderboard");
       leaderboardEl.innerHTML = "";
+      // Render team leaderboard in the left column
+      const teamBoard = document.getElementById('team-board');
+      if (teamBoard) {
+        teamBoard.innerHTML = '';
+        // Sort teams by total descending
+        const sortedTeams = [...teams].sort((a, b) => b.total - a.total);
+        if (sortedTeams.length > 0) {
+          const teamCard = document.createElement('div');
+          teamCard.className = 'top-card';
+          const teamTitle = document.createElement('h3');
+          teamTitle.textContent = 'Team Leaderboard';
+          teamCard.appendChild(teamTitle);
+          const teamList = document.createElement('ul');
+          teamList.className = 'top-list';
+          sortedTeams.forEach((t, idx) => {
+            const li = document.createElement('li');
+            li.className = 'top-item';
+            const rankSpan = document.createElement('span');
+            rankSpan.className = 'rank';
+            rankSpan.textContent = `#${idx + 1}`;
+            const nameSpan = document.createElement('span');
+            nameSpan.textContent = t.name;
+            const scoreSpan = document.createElement('span');
+            scoreSpan.textContent = `${t.total} pts`;
+            li.appendChild(rankSpan);
+            li.appendChild(nameSpan);
+            li.appendChild(scoreSpan);
+            teamList.appendChild(li);
+          });
+          teamCard.appendChild(teamList);
+          teamBoard.appendChild(teamCard);
+        }
+      }
       // Render top 5 competition-wide leaderboard
       const topContainer = document.getElementById('top-leaderboard');
       topContainer.innerHTML = '';
@@ -548,7 +612,7 @@
         topContainer.appendChild(topCard);
       }
       // Build each team card
-      teams.forEach(team => {
+      teams.forEach((team, index) => {
         // Determine team MVP (highest scorer)
         let mvpName = null;
         let mvpScore = -1;
@@ -571,6 +635,16 @@
         totalSpan.textContent = `Total: ${team.total} pts`;
         header.appendChild(h2);
         header.appendChild(totalSpan);
+
+        // Apply accent color to card border for visual differentiation. Use the
+        // provided index from the forEach callback to consistently assign an
+        // accent colour to each team. Without capturing the index the
+        // previous code referenced an undefined `tIndex` variable which
+        // caused the script to fail and prevented the cards from rendering.
+        const accentColor = accentColors[index % accentColors.length];
+        card.style.borderLeft = `8px solid ${accentColor}`;
+        // Also subtly tint the team header using the accent colour
+        header.style.background = `linear-gradient(135deg, ${accentColor} 0%, #0d3b66 100%)`;
         // Member list
         const ul = document.createElement("ul");
         ul.className = "member-list";
