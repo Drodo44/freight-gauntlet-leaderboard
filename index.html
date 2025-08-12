@@ -83,7 +83,7 @@
   <script>
     const accentColors = ['#5A67D8','#ED8936','#48BB78','#D53F8C','#4299E1','#ECC94B','#F6AD55','#4FD1C5','#9F7AEA','#38B2AC','#F56565'];
 
-    /* === ELIMINATED (fixed five) === */
+    /* Fixed five eliminations */
     const ELIMINATED = new Set([
       "Clarens Legagneur",      // Team 1
       "Nicholas Peffenberger",  // Team 2
@@ -92,7 +92,7 @@
       "Courtney Monroy"         // Team 11
     ]);
 
-    /* === DATA (today's totals already applied) === */
+    /* Data (totals already applied) */
     const teams = [
       { name: "Team 1", members: [
         { name: "Nicholas Nguyen", score: 375, details: [
@@ -274,30 +274,29 @@
       ]}
     ];
 
-    /* === RENDER === */
     function renderLeaderboard() {
       const allMembers = [];
       teams.forEach(t => {
-        t.total = t.members.reduce((s,m)=>s + (m.score||0), 0);
-        t.members.forEach(m => allMembers.push({ name:m.name, score:m.score, team:t.name }));
+        t.total = t.members.reduce((sum, m) => sum + (m.score || 0), 0);
+        t.members.forEach(m => allMembers.push({ name: m.name, score: m.score, team: t.name }));
       });
 
-      const sortedDesc = [...allMembers].sort((a,b)=>b.score-a.score);
-      const top3 = sortedDesc.slice(0,3).map(m=>m.name);
-      const top5 = sortedDesc.slice(0,5);
-      const sortedAsc = [...allMembers].sort((a,b)=>a.score-b.score || a.name.localeCompare(b.name));
-      const minScore = sortedAsc.length ? sortedAsc[0].score : 0;
-      const bottom5 = sortedAsc.filter(m=>m.score===minScore).map(m=>m.name);
+      // red-flag group = lowest scorers among non-eliminated
+      const nonElim = allMembers.filter(m => !ELIMINATED.has(m.name));
+      const minScore = nonElim.length ? Math.min(...nonElim.map(m => m.score)) : 0;
+      const flagged = new Set(nonElim.filter(m => m.score === minScore).map(m => m.name));
+
+      const sortedTeams = [...teams].sort((a,b)=>b.total-a.total);
+      const topOverall = [...allMembers].sort((a,b)=>b.score-a.score).slice(0,5);
+      const top3Names = topOverall.slice(0,3).map(m=>m.name);
 
       // Team leaderboard
       const teamBoard = document.getElementById('team-board');
       teamBoard.innerHTML = '';
-      const sortedTeams = [...teams].sort((a,b)=>b.total-a.total);
-      const teamCard = document.createElement('div');
-      teamCard.className = 'top-card';
+      const teamCard = document.createElement('div'); teamCard.className = 'top-card';
       teamCard.innerHTML = '<h3>Team Leaderboard</h3>';
-      const teamList = document.createElement('ul'); teamList.className='top-list';
-      sortedTeams.forEach((t, i) => {
+      const teamList = document.createElement('ul'); teamList.className = 'top-list';
+      sortedTeams.forEach((t,i)=>{
         const li = document.createElement('li'); li.className='top-item';
         li.innerHTML = `<span class="rank">#${i+1}</span><span>${t.name}</span><span>${t.total} pts</span>`;
         teamList.appendChild(li);
@@ -310,25 +309,24 @@
       const topCard = document.createElement('div'); topCard.className='top-card';
       topCard.innerHTML = '<h3>Top 5 Scorers Overall</h3>';
       const topList = document.createElement('ul'); topList.className='top-list';
-      top5.forEach((m,i)=>{
+      topOverall.forEach((p,i)=>{
         const li = document.createElement('li'); li.className='top-item';
-        li.innerHTML = `<span class="rank">#${i+1}</span><span>${m.name}</span><span>${m.score} pts</span>`;
+        li.innerHTML = `<span class="rank">#${i+1}</span><span>${p.name}</span><span>${p.score} pts</span>`;
         topList.appendChild(li);
       });
       topCard.appendChild(topList); topContainer.appendChild(topCard);
 
       // Team cards
-      const leaderboard = document.getElementById('leaderboard');
-      leaderboard.innerHTML = '';
-      teams.forEach((team, idxTeam) => {
+      const leaderboard = document.getElementById('leaderboard'); leaderboard.innerHTML = '';
+      teams.forEach((team, idx) => {
         const card = document.createElement('div'); card.className='team-card';
         const header = document.createElement('div'); header.className='team-header';
-        header.style.background = `linear-gradient(135deg, ${accentColors[idxTeam % accentColors.length]} 0%, #0d3b66 100%)`;
-        card.style.borderLeft = `8px solid ${accentColors[idxTeam % accentColors.length]}`;
+        header.style.background = `linear-gradient(135deg, ${accentColors[idx % accentColors.length]} 0%, #0d3b66 100%)`;
+        card.style.borderLeft = `8px solid ${accentColors[idx % accentColors.length]}`;
         header.innerHTML = `<h2>${team.name}</h2><div class="total-score">Total: ${team.total} pts</div>`;
         card.appendChild(header);
 
-        // Team MVP
+        // team MVP
         let mvpName = ''; let mvpScore = -1;
         team.members.forEach(m => { if ((m.score||0) > mvpScore) { mvpScore = m.score||0; mvpName = m.name; } });
 
@@ -337,26 +335,19 @@
           const details = document.createElement('details');
           const summary = document.createElement('summary'); summary.className='member';
 
-          // color classes
-          let classes = '';
-          if (top3.includes(member.name)) {
-            const i = top3.indexOf(member.name);
-            classes = i===0 ? 'gold' : i===1 ? 'silver' : 'bronze';
-          }
-          if (ELIMINATED.has(member.name) || bottom5.includes(member.name)) classes = 'eliminated';
-          if (classes) summary.classList.add(classes);
-
-          // icons: skull for eliminated, red flag for bottom 5, medals for top3, crown for team MVP
+          // icon logic
           let icon = '';
-          if (ELIMINATED.has(member.name)) {
-            icon = '☠️';
-          } else if (top3.includes(member.name)) {
-            const i = top3.indexOf(member.name);
-            icon = i===0 ? '🥇' : i===1 ? '🥈' : '🥉';
-          } else if (bottom5.includes(member.name)) {
-            icon = '🚩';
-          } else if (member.name===mvpName && (member.score||0)>0) {
-            icon = '👑';
+          if (ELIMINATED.has(member.name)) icon = '☠️';
+          else if (top3Names.includes(member.name)) {
+            const i = top3Names.indexOf(member.name); icon = i===0?'🥇':i===1?'🥈':'🥉';
+          } else if (flagged.has(member.name)) icon = '🚩';
+          else if (member.name === mvpName && (member.score||0)>0) icon = '👑';
+
+          // color class (keep red for eliminated + flagged)
+          if (ELIMINATED.has(member.name) || flagged.has(member.name)) summary.classList.add('eliminated');
+          else if (top3Names.includes(member.name)) {
+            const i = top3Names.indexOf(member.name);
+            summary.classList.add(i===0?'gold':i===1?'silver':'bronze');
           }
 
           const nameDiv = document.createElement('div'); nameDiv.className='name';
@@ -370,27 +361,24 @@
           const detailsContent = document.createElement('div'); detailsContent.className='details-content';
           if (member.details && member.details.length) {
             const ulDet = document.createElement('ul');
-            member.details.forEach(it => {
-              const li = document.createElement('li'); li.textContent = `${it.label}: ${it.points} pts`;
+            member.details.forEach(d => {
+              const li = document.createElement('li'); li.textContent = `${d.label}: ${d.points} pts`;
               ulDet.appendChild(li);
             });
-            const liTot = document.createElement('li'); liTot.innerHTML = `<strong>Total</strong>: ${member.score} pts`;
-            ulDet.appendChild(liTot);
+            const liT = document.createElement('li'); liT.innerHTML = `<strong>Total</strong>: ${member.score} pts`;
+            ulDet.appendChild(liT);
             detailsContent.appendChild(ulDet);
           } else {
-            const p = document.createElement('p'); p.textContent = 'No points awarded yet.';
-            detailsContent.appendChild(p);
+            const p = document.createElement('p'); p.textContent = 'No points awarded yet.'; detailsContent.appendChild(p);
           }
 
           details.appendChild(summary); details.appendChild(detailsContent);
-          const liWrap = document.createElement('li'); liWrap.appendChild(details);
-          ul.appendChild(liWrap);
+          const li = document.createElement('li'); li.appendChild(details); ul.appendChild(li);
         });
 
         card.appendChild(ul); leaderboard.appendChild(card);
       });
     }
-
     renderLeaderboard();
   </script>
 </body>
