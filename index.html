@@ -53,19 +53,9 @@
     .top-item:last-child { border-bottom: none; }
     .rank { font-weight: bold; margin-right: 8px; }
     /* Container for the top-level leaderboards (top 5 and team leaderboard) */
-    .leaderboards {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 2rem;
-      margin-top: 20px;
-    }
-    .leaderboards > div {
-      flex: 1 1 50%;
-    }
-    /* Add spacing below the cards in the leaderboards container */
-    .leaderboards .top-card {
-      margin-bottom: 20px;
-    }
+    .leaderboards { display: flex; flex-wrap: wrap; gap: 2rem; margin-top: 20px; }
+    .leaderboards > div { flex: 1 1 50%; }
+    .leaderboards .top-card { margin-bottom: 20px; }
   </style>
 </head>
 <body>
@@ -109,409 +99,218 @@
   <script>
     // Accent colors array for team cards (visual enhancement)
     const accentColors = [
-      '#5A67D8', // Indigo
-      '#ED8936', // Orange
-      '#48BB78', // Green
-      '#D53F8C', // Pink
-      '#4299E1', // Blue
-      '#ECC94B', // Yellow
-      '#F6AD55', // Peach
-      '#4FD1C5', // Teal
-      '#9F7AEA', // Purple
-      '#38B2AC', // Teal Blue
-      '#F56565'  // Red
+      '#5A67D8', '#ED8936', '#48BB78', '#D53F8C', '#4299E1',
+      '#ECC94B', '#F6AD55', '#4FD1C5', '#9F7AEA', '#38B2AC', '#F56565'
     ];
-    // Data structure representing teams, players, scores, and details.
+
+    // Teams & members
     const teams = [
-  {
-    "name": "Team 1",
-    "members": [
       {
-        "name": "Nicholas Nguyen",
-        "score": 375,
-        "details": [
-          { "label": "$10,277 YOY Growth (13×$750)", "points": 325 },
-          { "label": "BR/Load > $382 (Week Avg)", "points": 50 }
+        "name": "Team 1",
+        "members": [
+          { "name": "Nicholas Nguyen", "score": 375, "details": [
+            { "label": "$10,277 YOY Growth (13×$750)", "points": 325 },
+            { "label": "BR/Load > $382 (Week Avg)", "points": 50 }
+          ]},
+          { "name": "Clarens Legagneur", "score": 0, "details": [] },
+          { "name": "Aaron Wofford", "score": 105, "details": [
+            { "label": "302 Calls > 250", "points": 25 },
+            { "label": "16 Covers", "points": 80 }
+          ]},
+          { "name": "Bobby Meyer", "score": 185, "details": [
+            { "label": "353 Calls > 250", "points": 50 },
+            { "label": "25 Covers", "points": 125 },
+            { "label": "2 Group Covers", "points": 10 }
+          ]}
         ]
       },
       {
-        "name": "Clarens Legagneur",
-        "score": 0,
-        "details": []
-      },
-      {
-        "name": "Aaron Wofford",
-        "score": 105,
-        "details": [
-          { "label": "302 Calls > 250", "points": 25 },
-          { "label": "16 Covers", "points": 80 }
+        "name": "Team 2",
+        "members": [
+          { "name": "Jordan DeWitt (PG)", "score": 0, "details": [] },
+          { "name": "Hau Cing", "score": 130, "details": [
+            { "label": "337 Calls > 250", "points": 25 },
+            { "label": "21 Covers", "points": 105 }
+          ]},
+          { "name": "Emily Smith", "score": 55, "details": [
+            { "label": "262 Calls > 250", "points": 0 },
+            { "label": "11 Covers", "points": 55 }
+          ]},
+          { "name": "Nicholas Peffenberger", "score": 0, "details": [] }
         ]
       },
       {
-        "name": "Bobby Meyer",
-        "score": 185,
-        "details": [
-          { "label": "353 Calls > 250", "points": 50 },
-          { "label": "25 Covers", "points": 125 },
-          { "label": "2 Group Covers", "points": 10 }
-        ]
-      }
-    ]
-  },
-  {
-    "name": "Team 2",
-    "members": [
-      {
-        "name": "Jordan DeWitt (PG)",
-        "score": 0,
-        "details": []
-      },
-      {
-        "name": "Hau Cing",
-        "score": 130,
-        "details": [
-          { "label": "337 Calls > 250", "points": 25 },
-          { "label": "21 Covers", "points": 105 }
+        "name": "Team 3",
+        "members": [
+          { "name": "Jack Sullivan", "score": 100, "details": [
+            { "label": "Revenue Above Plan +$1,200 (4×$250)", "points": 100 }
+          ]},
+          { "name": "Henry Baker", "score": 240, "details": [
+            { "label": "619 Calls > 250", "points": 175 },
+            { "label": "11 Covers", "points": 55 },
+            { "label": "2 Group Covers", "points": 10 }
+          ]},
+          { "name": "Jared Kohn", "score": 230, "details": [
+            { "label": "653 Calls > 250", "points": 200 },
+            { "label": "6 Covers", "points": 30 }
+          ]},
+          { "name": "Robert Hudson", "score": 50, "details": [
+            { "label": "BR/Load > $382 (Week Avg)", "points": 50 }
+          ]}
         ]
       },
       {
-        "name": "Emily Smith",
-        "score": 55,
-        "details": [
-          { "label": "262 Calls > 250", "points": 0 },
-          { "label": "11 Covers", "points": 55 }
+        "name": "Team 4",
+        "members": [
+          { "name": "Jacob Archer", "score": 0, "details": [] },
+          { "name": "Jack Heyob", "score": 450, "details": [
+            { "label": "$13,940 YOY Growth (18×$750)", "points": 450 }
+          ]},
+          { "name": "Jared Miller", "score": 40, "details": [
+            { "label": "287 Calls > 250", "points": 0 },
+            { "label": "8 Covers", "points": 40 }
+          ]},
+          { "name": "Jennifer Fike", "score": 0, "details": [
+            { "label": "Did not hit call qualifier week 1", "points": 0 }
+          ]}
         ]
       },
       {
-        "name": "Nicholas Peffenberger",
-        "score": 0,
-        "details": []
-      }
-    ]
-  },
-  {
-    "name": "Team 3",
-    "members": [
-      {
-        "name": "Jack Sullivan",
-        "score": 100,
-        "details": [
-          { "label": "Revenue Above Plan +$1,200 (4×$250)", "points": 100 }
+        "name": "Team 5",
+        "members": [
+          { "name": "James Holcomb", "score": 85, "details": [
+            { "label": "50 Calls (3×15)", "points": 75 },
+            { "label": "2 Assists", "points": 10 }
+          ]},
+          { "name": "Matias Janice", "score": 95, "details": [
+            { "label": "Revenue Above Plan +$1,500 (3×$500)", "points": 75 },
+            { "label": "1 Close", "points": 20 }
+          ]},
+          { "name": "Joseph Kisselle", "score": 35, "details": [
+            { "label": "347 Calls > 250", "points": 25 },
+            { "label": "1 Cover", "points": 5 },
+            { "label": "1 Group Cover", "points": 5 }
+          ]},
+          { "name": "Joseph Wolf", "score": 150, "details": [
+            { "label": "596 Calls > 250", "points": 150 }
+          ]}
         ]
       },
       {
-        "name": "Henry Baker",
-        "score": 240,
-        "details": [
-          { "label": "619 Calls > 250", "points": 175 },
-          { "label": "11 Covers", "points": 55 },
-          { "label": "2 Group Covers", "points": 10 }
+        "name": "Team 6",
+        "members": [
+          { "name": "Vincent Waters", "score": 40, "details": [
+            { "label": "2 Closes", "points": 40 }
+          ]},
+          { "name": "James McMullen", "score": 0, "details": [] },
+          { "name": "Maddie Evanchik", "score": 0, "details": [
+            { "label": "Did not hit call qualifier week 1", "points": 0 }
+          ]},
+          { "name": "Matthew Snawder", "score": 0, "details": [
+            { "label": "Did not hit call qualifier week 1", "points": 0 }
+          ]},
+          { "name": "Krish Daraji", "score": 160, "details": [
+            { "label": "305 Calls > 250", "points": 25 },
+            { "label": "26 Covers", "points": 130 },
+            { "label": "1 Group Cover", "points": 5 }
+          ]}
         ]
       },
       {
-        "name": "Jared Kohn",
-        "score": 230,
-        "details": [
-          { "label": "653 Calls > 250", "points": 200 },
-          { "label": "6 Covers", "points": 30 }
+        "name": "Team 7",
+        "members": [
+          { "name": "Andrew Connellan", "score": 300, "details": [
+            { "label": "BR > T12 +$2,560 (10×$250)", "points": 250 },
+            { "label": "10 Assists", "points": 50 }
+          ]},
+          { "name": "Sydney Tiberghien", "score": 40, "details": [
+            { "label": "262 Calls > 250", "points": 0 },
+            { "label": "8 Covers", "points": 40 }
+          ]},
+          { "name": "Kyle Taylor", "score": 25, "details": [
+            { "label": "Revenue Above Plan +$525 (1×$500)", "points": 25 }
+          ]},
+          { "name": "Eric Isaacs", "score": 0, "details": [] }
         ]
       },
       {
-        "name": "Robert Hudson",
-        "score": 50,
-        "details": [
-          { "label": "BR/Load > $382 (Week Avg)", "points": 50 }
-        ]
-      }
-    ]
-  },
-  {
-    "name": "Team 4",
-    "members": [
-      {
-        "name": "Jacob Archer",
-        "score": 0,
-        "details": []
-      },
-      {
-        "name": "Jack Heyob",
-        "score": 450,
-        "details": [
-          { "label": "$13,940 YOY Growth (18×$750)", "points": 450 }
+        "name": "Team 8",
+        "members": [
+          { "name": "Miguel Cordoba", "score": 210, "details": [
+            { "label": "424 Calls > 250", "points": 75 },
+            { "label": "25 Covers", "points": 125 },
+            { "label": "2 Group Covers", "points": 10 }
+          ]},
+          { "name": "Anthony Gordon", "score": 1125, "details": [
+            { "label": "BR > T12 +$10,942 (43×$250)", "points": 1075 },
+            { "label": "BR/Load > $382 (Week Avg)", "points": 50 }
+          ]},
+          { "name": "Brian Braverman", "score": 0, "details": [
+            { "label": "No YOY Growth (Week 1)", "points": 0 }
+          ]},
+          { "name": "Quinn Fashingbauer", "score": 0, "details": [] }
         ]
       },
       {
-        "name": "Jared Miller",
-        "score": 40,
-        "details": [
-          { "label": "287 Calls > 250", "points": 0 },
-          { "label": "8 Covers", "points": 40 }
+        "name": "Team 9",
+        "members": [
+          { "name": "Rachel Hack", "score": 325, "details": [
+            { "label": "720 Calls > 250", "points": 225 },
+            { "label": "17 Covers", "points": 85 },
+            { "label": "3 Group Covers", "points": 15 }
+          ]},
+          { "name": "Anthony Fambry", "score": 100, "details": [
+            { "label": "$3,330 YOY Growth (4×$750)", "points": 100 }
+          ]},
+          { "name": "Seth Klink", "score": 0, "details": [
+            { "label": "Did not hit call qualifier week 1", "points": 0 }
+          ]},
+          { "name": "Andrew Hayes", "score": 0, "details": [
+            { "label": "No YOY Growth (Week 1)", "points": 0 }
+          ]}
         ]
       },
       {
-        "name": "Jennifer Fike",
-        "score": 0,
-        "details": [
-          { "label": "Did not hit call qualifier week 1", "points": 0 }
-        ]
-      }
-    ]
-  },
-  {
-    "name": "Team 5",
-    "members": [
-      {
-        "name": "James Holcomb",
-        "score": 85,
-        "details": [
-          { "label": "50 Calls (3×15)", "points": 75 },
-          { "label": "2 Assists", "points": 10 }
-        ]
-      },
-      {
-        "name": "Matias Janice",
-        "score": 95,
-        "details": [
-          { "label": "Revenue Above Plan +$1,500 (3×$500)", "points": 75 },
-          { "label": "1 Close", "points": 20 }
+        "name": "Team 10",
+        "members": [
+          { "name": "Brandon Fuller", "score": 25, "details": [
+            { "label": "$1,023 YOY Growth (1×$750)", "points": 25 }
+          ]},
+          { "name": "Dustin Schneider", "score": 0, "details": [
+            { "label": "No YOY Growth (Week 1)", "points": 0 }
+          ]},
+          { "name": "☠️ Justin Bagent", "score": 75, "details": [
+            { "label": "322 Calls > 250", "points": 25 },
+            { "label": "10 Covers", "points": 50 },
+            { "label": "Eliminated (Week 1)", "points": 0 }
+          ]},
+          { "name": "John Mcnulty", "score": 0, "details": [] },
+          { "name": "Ken Ervas", "score": 50, "details": [
+            { "label": "385 Calls > 250", "points": 50 }
+          ]}
         ]
       },
       {
-        "name": "Joseph Kisselle",
-        "score": 35,
-        "details": [
-          { "label": "347 Calls > 250", "points": 25 },
-          { "label": "1 Cover", "points": 5 },
-          { "label": "1 Group Cover", "points": 5 }
-        ]
-      },
-      {
-        "name": "Joseph Wolf",
-        "score": 150,
-        "details": [
-          { "label": "596 Calls > 250", "points": 150 }
-        ]
-      }
-    ]
-  },
-  {
-    "name": "Team 6",
-    "members": [
-      {
-        "name": "Vincent Waters",
-        "score": 40,
-        "details": [
-          { "label": "2 Closes", "points": 40 }
-        ]
-      },
-      {
-        "name": "James McMullen",
-        "score": 0,
-        "details": []
-      },
-      {
-        "name": "Maddie Evanchik",
-        "score": 0,
-        "details": [
-          { "label": "Did not hit call qualifier week 1", "points": 0 }
-        ]
-      },
-      {
-        "name": "Matthew Snawder",
-        "score": 0,
-        "details": [
-          { "label": "Did not hit call qualifier week 1", "points": 0 }
-        ]
-      },
-      {
-        "name": "Krish Daraji",
-        "score": 160,
-        "details": [
-          { "label": "305 Calls > 250", "points": 25 },
-          { "label": "26 Covers", "points": 130 },
-          { "label": "1 Group Cover", "points": 5 }
+        "name": "Team 11",
+        "members": [
+          { "name": "Ryan Monahan", "score": 170, "details": [
+            { "label": "574 Calls > 250", "points": 150 },
+            { "label": "4 Covers", "points": 20 }
+          ]},
+          { "name": "Brian Amshoff", "score": 350, "details": [
+            { "label": "$11,124 YOY Growth (14×$750)", "points": 350 }
+          ]},
+          { "name": "☠️ Courtney Monroy", "score": 0, "details": [
+            { "label": "Eliminated (Week 1)", "points": 0 }
+          ]},
+          { "name": "Daniel Covol", "score": 0, "details": [] },
+          { "name": "Sarah Miracle", "score": 0, "details": [] }
         ]
       }
-    ]
-  },
-  {
-    "name": "Team 7",
-    "members": [
-      {
-        "name": "Andrew Connellan",
-        "score": 300,
-        "details": [
-          { "label": "BR > T12 +$2,560 (10×$250)", "points": 250 },
-          { "label": "10 Assists", "points": 50 }
-        ]
-      },
-      {
-        "name": "Sydney Tiberghien",
-        "score": 40,
-        "details": [
-          { "label": "262 Calls > 250", "points": 0 },
-          { "label": "8 Covers", "points": 40 }
-        ]
-      },
-      {
-        "name": "Kyle Taylor",
-        "score": 0,
-        "details": []
-      },
-      {
-        "name": "Eric Isaacs",
-        "score": 0,
-        "details": []
-      }
-    ]
-  },
-  {
-    "name": "Team 8",
-    "members": [
-      {
-        "name": "Miguel Cordoba",
-        "score": 210,
-        "details": [
-          { "label": "424 Calls > 250", "points": 75 },
-          { "label": "25 Covers", "points": 125 },
-          { "label": "2 Group Covers", "points": 10 }
-        ]
-      },
-      {
-        "name": "Anthony Gordon",
-        "score": 1125,
-        "details": [
-          { "label": "BR > T12 +$10,942 (43×$250)", "points": 1075 },
-          { "label": "BR/Load > $382 (Week Avg)", "points": 50 }
-        ]
-      },
-      {
-        "name": "Brian Braverman",
-        "score": 0,
-        "details": [
-          { "label": "No YOY Growth (Week 1)", "points": 0 }
-        ]
-      },
-      {
-        "name": "Quinn Fashingbauer",
-        "score": 0,
-        "details": []
-      }
-    ]
-  },
-  {
-    "name": "Team 9",
-    "members": [
-      {
-        "name": "Rachel Hack",
-        "score": 325,
-        "details": [
-          { "label": "720 Calls > 250", "points": 225 },
-          { "label": "17 Covers", "points": 85 },
-          { "label": "3 Group Covers", "points": 15 }
-        ]
-      },
-      {
-        "name": "Anthony Fambry",
-        "score": 100,
-        "details": [
-          { "label": "$3,330 YOY Growth (4×$750)", "points": 100 }
-        ]
-      },
-      {
-        "name": "Seth Klink",
-        "score": 0,
-        "details": [
-          { "label": "Did not hit call qualifier week 1", "points": 0 }
-        ]
-      },
-      {
-        "name": "Andrew Hayes",
-        "score": 0,
-        "details": [
-          { "label": "No YOY Growth (Week 1)", "points": 0 }
-        ]
-      }
-    ]
-  },
-  {
-    "name": "Team 10",
-    "members": [
-      {
-        "name": "Brandon Fuller",
-        "score": 25,
-        "details": [
-          { "label": "$1,023 YOY Growth (1×$750)", "points": 25 }
-        ]
-      },
-      {
-        "name": "Dustin Schneider",
-        "score": 0,
-        "details": [
-          { "label": "No YOY Growth (Week 1)", "points": 0 }
-        ]
-      },
-      {
-        "name": "Justin Bagent",
-        "score": 75,
-        "details": [
-          { "label": "322 Calls > 250", "points": 25 },
-          { "label": "10 Covers", "points": 50 }
-        ]
-      },
-      {
-        "name": "John Mcnulty",
-        "score": 0,
-        "details": []
-      },
-      {
-        "name": "Ken Ervas",
-        "score": 50,
-        "details": [
-          { "label": "385 Calls > 250", "points": 50 }
-        ]
-      }
-    ]
-  },
-  {
-    "name": "Team 11",
-    "members": [
-      {
-        "name": "Ryan Monahan",
-        "score": 170,
-        "details": [
-          { "label": "574 Calls > 250", "points": 150 },
-          { "label": "4 Covers", "points": 20 }
-        ]
-      },
-      {
-        "name": "Brian Amshoff",
-        "score": 350,
-        "details": [
-          { "label": "$11,124 YOY Growth (14×$750)", "points": 350 }
-        ]
-      },
-      {
-        "name": "Courtney Monroy",
-        "score": 0,
-        "details": []
-      },
-      {
-        "name": "Daniel Covol",
-        "score": 0,
-        "details": []
-      },
-      {
-        "name": "Sarah Miracle",
-        "score": 0,
-        "details": []
-      }
-    ]
-  }
-];
-    // Function to render the leaderboard dynamically
+    ];
+
+    // Render the leaderboard dynamically
     function renderLeaderboard() {
-      // Compute totals, top 3 global, and bottom 5 global
       let allMembers = [];
       teams.forEach((team, tIndex) => {
         let total = 0;
@@ -521,50 +320,47 @@
         });
         team.total = total;
       });
-      // Sort for top 3 and bottom 5
+
       const sortedDesc = [...allMembers].sort((a, b) => b.score - a.score);
       const top3 = sortedDesc.slice(0, 3).map(m => m.name);
       const top5List = sortedDesc.slice(0, 5);
+
       const sortedAsc = [...allMembers].sort((a, b) => a.score - b.score || a.name.localeCompare(b.name));
-      // Determine all players who tie for the lowest score.
       const minScore = sortedAsc.length > 0 ? sortedAsc[0].score : 0;
       const bottom5 = sortedAsc.filter(m => m.score === minScore).map(m => m.name);
-      const leaderboardEl = document.getElementById("leaderboard");
-      leaderboardEl.innerHTML = "";
-      // Render team leaderboard in the left column
+
+      // Left column: Team leaderboard
       const teamBoard = document.getElementById('team-board');
-      if (teamBoard) {
-        teamBoard.innerHTML = '';
-        // Sort teams by total descending
-        const sortedTeams = [...teams].sort((a, b) => b.total - a.total);
-        if (sortedTeams.length > 0) {
-          const teamCard = document.createElement('div');
-          teamCard.className = 'top-card';
-          const teamTitle = document.createElement('h3');
-          teamTitle.textContent = 'Team Leaderboard';
-          teamCard.appendChild(teamTitle);
-          const teamList = document.createElement('ul');
-          teamList.className = 'top-list';
-          sortedTeams.forEach((t, idx) => {
-            const li = document.createElement('li');
-            li.className = 'top-item';
-            const rankSpan = document.createElement('span');
-            rankSpan.className = 'rank';
-            rankSpan.textContent = `#${idx + 1}`;
-            const nameSpan = document.createElement('span');
-            nameSpan.textContent = t.name;
-            const scoreSpan = document.createElement('span');
-            scoreSpan.textContent = `${t.total} pts`;
-            li.appendChild(rankSpan);
-            li.appendChild(nameSpan);
-            li.appendChild(scoreSpan);
-            teamList.appendChild(li);
-          });
-          teamCard.appendChild(teamList);
-          teamBoard.appendChild(teamCard);
-        }
+      teamBoard.innerHTML = '';
+      const sortedTeams = [...teams].sort((a, b) => b.total - a.total);
+      if (sortedTeams.length > 0) {
+        const teamCard = document.createElement('div');
+        teamCard.className = 'top-card';
+        const teamTitle = document.createElement('h3');
+        teamTitle.textContent = 'Team Leaderboard';
+        teamCard.appendChild(teamTitle);
+        const teamList = document.createElement('ul');
+        teamList.className = 'top-list';
+        sortedTeams.forEach((t, idx) => {
+          const li = document.createElement('li');
+          li.className = 'top-item';
+          const rankSpan = document.createElement('span');
+          rankSpan.className = 'rank';
+          rankSpan.textContent = `#${idx + 1}`;
+          const nameSpan = document.createElement('span');
+          nameSpan.textContent = t.name;
+          const scoreSpan = document.createElement('span');
+          scoreSpan.textContent = `${t.total} pts`;
+          li.appendChild(rankSpan);
+          li.appendChild(nameSpan);
+          li.appendChild(scoreSpan);
+          teamList.appendChild(li);
+        });
+        teamCard.appendChild(teamList);
+        teamBoard.appendChild(teamCard);
       }
-      // Render top 5 competition-wide leaderboard
+
+      // Right column: Top 5 overall
       const topContainer = document.getElementById('top-leaderboard');
       topContainer.innerHTML = '';
       if (top5List.length > 0) {
@@ -593,21 +389,20 @@
         topCard.appendChild(topListEl);
         topContainer.appendChild(topCard);
       }
-      // Build each team card
+
+      // Team cards
+      const leaderboardEl = document.getElementById("leaderboard");
+      leaderboardEl.innerHTML = "";
       teams.forEach((team, index) => {
-        // Determine team MVP (highest scorer)
         let mvpName = null;
         let mvpScore = -1;
         team.members.forEach(member => {
-          if (member.score > mvpScore) {
-            mvpScore = member.score;
-            mvpName = member.name;
-          }
+          if (member.score > mvpScore) { mvpScore = member.score; mvpName = member.name; }
         });
-        // Create card
+
         const card = document.createElement("div");
         card.className = "team-card";
-        // Header
+
         const header = document.createElement("div");
         header.className = "team-header";
         const h2 = document.createElement("h2");
@@ -618,16 +413,10 @@
         header.appendChild(h2);
         header.appendChild(totalSpan);
 
-        // Apply accent color to card border for visual differentiation. Use the
-        // provided index from the forEach callback to consistently assign an
-        // accent colour to each team. Without capturing the index the
-        // previous code referenced an undefined `tIndex` variable which
-        // caused the script to fail and prevented the cards from rendering.
         const accentColor = accentColors[index % accentColors.length];
         card.style.borderLeft = `8px solid ${accentColor}`;
-        // Also subtly tint the team header using the accent colour
         header.style.background = `linear-gradient(135deg, ${accentColor} 0%, #0d3b66 100%)`;
-        // Member list
+
         const ul = document.createElement("ul");
         ul.className = "member-list";
         team.members.forEach(member => {
@@ -635,29 +424,29 @@
           const details = document.createElement("details");
           const summary = document.createElement("summary");
           summary.className = "member";
-          // Determine classes for MVP medals and elimination
+
           let classes = "";
           if (top3.includes(member.name)) {
-            const index = top3.indexOf(member.name);
-            if (index === 0) classes = "gold";
-            else if (index === 1) classes = "silver";
-            else if (index === 2) classes = "bronze";
+            const i = top3.indexOf(member.name);
+            if (i === 0) classes = "gold";
+            else if (i === 1) classes = "silver";
+            else if (i === 2) classes = "bronze";
           }
           if (bottom5.includes(member.name)) {
             classes = "eliminated";
           }
-          // Determine icons: Crown for team MVP, medal for top3, skull for bottom5
+
           let icon = "";
-          // Medal icons for global top 3 if not eliminated
           if (top3.includes(member.name)) {
             const idx = top3.indexOf(member.name);
-            icon = idx === 0 ? "🥇" : idx === 1 ? "🥈" : idx === 2 ? "🥉" : "";
+            icon = idx === 0 ? "🥇" : idx === 1 ? "🥈" : "🥉";
           } else if (member.name === mvpName && member.score > 0) {
             icon = "👑";
           }
           if (bottom5.includes(member.name)) {
             icon = "☠️";
           }
+
           const nameDiv = document.createElement("div");
           nameDiv.className = "name";
           if (icon) {
@@ -669,14 +458,15 @@
           const nameText = document.createElement("span");
           nameText.textContent = member.name;
           nameDiv.appendChild(nameText);
+
           const scoreDiv = document.createElement("div");
           scoreDiv.className = "score";
           scoreDiv.textContent = `${member.score} pts`;
-          // Apply class to summary for elimination or medal coloring
+
           if (classes) summary.classList.add(classes);
           summary.appendChild(nameDiv);
           summary.appendChild(scoreDiv);
-          // Details content
+
           const detailsContent = document.createElement("div");
           detailsContent.className = "details-content";
           if (member.details && member.details.length > 0) {
@@ -695,11 +485,13 @@
             p.textContent = "No points awarded yet.";
             detailsContent.appendChild(p);
           }
+
           details.appendChild(summary);
           details.appendChild(detailsContent);
           li.appendChild(details);
           ul.appendChild(li);
         });
+
         card.appendChild(header);
         card.appendChild(ul);
         leaderboardEl.appendChild(card);
