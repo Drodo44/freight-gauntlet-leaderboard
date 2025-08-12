@@ -53,19 +53,9 @@
     .top-item:last-child { border-bottom: none; }
     .rank { font-weight: bold; margin-right: 8px; }
     /* Container for the top-level leaderboards (top 5 and team leaderboard) */
-    .leaderboards {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 2rem;
-      margin-top: 20px;
-    }
-    .leaderboards > div {
-      flex: 1 1 50%;
-    }
-    /* Add spacing below the cards in the leaderboards container */
-    .leaderboards .top-card {
-      margin-bottom: 20px;
-    }
+    .leaderboards { display: flex; flex-wrap: wrap; gap: 2rem; margin-top: 20px; }
+    .leaderboards > div { flex: 1 1 50%; }
+    .leaderboards .top-card { margin-bottom: 20px; }
   </style>
 </head>
 <body>
@@ -120,7 +110,6 @@
     ];
 
     // Data structure representing teams, players, scores, and details.
-    // Totals are computed from today's FULL cumulative numbers you provided.
     const teams = [
       {
         "name": "Team 1",
@@ -494,9 +483,10 @@
           },
           {
             "name": "Brian Amshoff",
-            "score": 350,
+            "score": 400,
             "details": [
-              { "label": "$11,124 YOY Growth (14×$750)", "points": 350 }
+              { "label": "$11,124 YOY Growth (14×$750)", "points": 350 },
+              { "label": "31 Calls (2×15)", "points": 50 }
             ]
           },
           {
@@ -513,8 +503,10 @@
           },
           {
             "name": "Sarah Miracle",
-            "score": 0,
-            "details": []
+            "score": 20,
+            "details": [
+              { "label": "76 Calls > 50 (1×25)", "points": 20 }
+            ]
           }
         ]
       }
@@ -607,124 +599,4 @@
       // Build each team card
       const leaderboardEl = document.getElementById("leaderboard");
       leaderboardEl.innerHTML = "";
-      teams.forEach((team, index) => {
-        // Determine team MVP (highest scorer)
-        let mvpName = null;
-        let mvpScore = -1;
-        team.members.forEach(member => {
-          if (member.score > mvpScore) {
-            mvpScore = member.score;
-            mvpName = member.name;
-          }
-        });
-
-        // Create card
-        const card = document.createElement("div");
-        card.className = "team-card";
-
-        // Header
-        const header = document.createElement("div");
-        header.className = "team-header";
-        const h2 = document.createElement("h2");
-        h2.textContent = team.name;
-        const totalSpan = document.createElement("div");
-        totalSpan.className = "total-score";
-        totalSpan.textContent = `Total: ${team.total} pts`;
-        header.appendChild(h2);
-        header.appendChild(totalSpan);
-
-        // Accent color per team
-        const accentColor = accentColors[index % accentColors.length];
-        card.style.borderLeft = `8px solid ${accentColor}`;
-        header.style.background = `linear-gradient(135deg, ${accentColor} 0%, #0d3b66 100%)`;
-
-        // Member list
-        const ul = document.createElement("ul");
-        ul.className = "member-list";
-        team.members.forEach(member => {
-          const li = document.createElement("li");
-          const details = document.createElement("details");
-          const summary = document.createElement("summary");
-          summary.className = "member";
-
-          // Determine classes for MVP medals and elimination (auto bottom five)
-          let classes = "";
-          if (top3.includes(member.name)) {
-            const idxTop = top3.indexOf(member.name);
-            if (idxTop === 0) classes = "gold";
-            else if (idxTop === 1) classes = "silver";
-            else if (idxTop === 2) classes = "bronze";
-          }
-          if (bottom5.includes(member.name)) {
-            classes = "eliminated";
-          }
-
-          // Icons
-          let icon = "";
-          if (top3.includes(member.name)) {
-            const idxTop = top3.indexOf(member.name);
-            icon = idxTop === 0 ? "🥇" : idxTop === 1 ? "🥈" : "🥉";
-          } else if (member.name === mvpName && member.score > 0) {
-            icon = "👑";
-          }
-          if (bottom5.includes(member.name)) {
-            icon = "☠️";
-          }
-
-          const nameDiv = document.createElement("div");
-          nameDiv.className = "name";
-          if (icon) {
-            const spanIcon = document.createElement("span");
-            spanIcon.className = "icon";
-            spanIcon.textContent = icon;
-            nameDiv.appendChild(spanIcon);
-          }
-          const nameText = document.createElement("span");
-          nameText.textContent = member.name;
-          nameDiv.appendChild(nameText);
-
-          const scoreDiv = document.createElement("div");
-          scoreDiv.className = "score";
-          scoreDiv.textContent = `${member.score} pts`;
-
-          if (classes) summary.classList.add(classes);
-          summary.appendChild(nameDiv);
-          summary.appendChild(scoreDiv);
-
-          // Details content
-          const detailsContent = document.createElement("div");
-          detailsContent.className = "details-content";
-          if (member.details && member.details.length > 0) {
-            const ulDetails = document.createElement("ul");
-            member.details.forEach(item => {
-              const liItem = document.createElement("li");
-              liItem.textContent = `${item.label}: ${item.points} pts`;
-              ulDetails.appendChild(liItem);
-            });
-            const liTotal = document.createElement("li");
-            liTotal.innerHTML = `<strong>Total</strong>: ${member.score} pts`;
-            ulDetails.appendChild(liTotal);
-            detailsContent.appendChild(ulDetails);
-          } else {
-            const p = document.createElement("p");
-            p.textContent = "No points awarded yet.";
-            detailsContent.appendChild(p);
-          }
-
-          details.appendChild(summary);
-          details.appendChild(detailsContent);
-          li.appendChild(details);
-          ul.appendChild(li);
-        });
-
-        card.appendChild(header);
-        card.appendChild(ul);
-        leaderboardEl.appendChild(card);
-      });
-    }
-
-    // Render on page load
-    renderLeaderboard();
-  </script>
-</body>
-</html>
+      teams
