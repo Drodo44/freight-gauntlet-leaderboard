@@ -54,7 +54,6 @@
   </style>
 </head>
 <body>
-  <!-- Note: Mapped "Krish Daraki" -> "Krish Daraji". Ignored Week 2 input for eliminated players. -->
   <h1>Freight Gauntlet: Haul or Nothing</h1>
   <div class="container">
     <div class="leaderboards">
@@ -93,7 +92,7 @@
       "Courtney Monroy"         // Team 11
     ]);
 
-    /* Data (Week 1 totals + Week 2 Day 1 full points added) */
+    /* Data (Week 1 totals + Week 2 adds applied) */
     const teams = [
       { name: "Team 1", members: [
         { name: "Nicholas Nguyen", score: 375, details: [
@@ -258,8 +257,10 @@
           { label: "Week 2 — 9 Covers", points: 45 },
           { label: "Week 2 — 1 Group Cover", points: 5 }
         ]},
-        { name: "Anthony Fambry", score: 100, details: [
-          { label: "$3,330 YOY Growth (4×$750)", points: 100 }
+        { name: "Anthony Fambry", score: 765, details: [
+          { label: "$3,330 YOY Growth (4×$750)", points: 100 },
+          { label: "Week 2 — BR > T12 +$6,305 (25×$250)", points: 625 },
+          { label: "Week 2 — 2 Closes", points: 40 }
         ]},
         { name: "Seth Klink", score: 155, details: [
           { label: "Did not hit call qualifier week 1", points: 0 },
@@ -284,7 +285,8 @@
         ]},
         { name: "John Mcnulty", score: 0, details: [] },
         { name: "Ken Ervas", score: 50, details: [
-          { label: "385 Calls > 250", points: 50 }
+          { label: "385 Calls > 250", points: 50 },
+          { label: "Week 2 — 211 Calls (No qualifier)", points: 0 }
         ]}
       ]},
       { name: "Team 11", members: [
@@ -315,7 +317,7 @@
         t.members.forEach(m => allMembers.push({ name: m.name, score: m.score, team: t.name }));
       });
 
-      // red-flag group = lowest scorers among non-eliminated
+      // Red-flag = current global minimum among non-eliminated
       const nonElim = allMembers.filter(m => !ELIMINATED.has(m.name));
       const minScore = nonElim.length ? Math.min(...nonElim.map(m => m.score)) : 0;
       const flagged = new Set(nonElim.filter(m => m.score === minScore).map(m => m.name));
@@ -329,7 +331,7 @@
       teamBoard.innerHTML = '';
       const teamCard = document.createElement('div'); teamCard.className = 'top-card';
       teamCard.innerHTML = '<h3>Team Leaderboard</h3>';
-      const teamList = document.createElement('ul'); teamList.className = 'top-list';
+      const teamList = document.createElement('ul'); teamList.className='top-list';
       sortedTeams.forEach((t,i)=>{
         const li = document.createElement('li'); li.className='top-item';
         li.innerHTML = `<span class="rank">#${i+1}</span><span>${t.name}</span><span>${t.total} pts</span>`;
@@ -377,7 +379,7 @@
           } else if (flagged.has(member.name)) icon = '🚩';
           else if (member.name === mvpName && (member.score||0)>0) icon = '👑';
 
-          // color class (keep red for eliminated + flagged)
+          // color class
           if (ELIMINATED.has(member.name) || flagged.has(member.name)) summary.classList.add('eliminated');
           else if (top3Names.includes(member.name)) {
             const i = top3Names.indexOf(member.name);
