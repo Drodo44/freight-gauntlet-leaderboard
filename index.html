@@ -54,6 +54,7 @@
   </style>
 </head>
 <body>
+  <!-- Note: Mapped "Krish Daraki" -> "Krish Daraji". Ignored Week 2 input for eliminated players. -->
   <h1>Freight Gauntlet: Haul or Nothing</h1>
   <div class="container">
     <div class="leaderboards">
@@ -92,7 +93,7 @@
       "Courtney Monroy"         // Team 11
     ]);
 
-    /* Data (totals already applied) */
+    /* Data (Week 1 totals + Week 2 Day 1 full points added) */
     const teams = [
       { name: "Team 1", members: [
         { name: "Nicholas Nguyen", score: 375, details: [
@@ -102,25 +103,29 @@
         { name: "Clarens Legagneur", score: 0, details: [
           { label: "Eliminated (Week 1)", points: 0 }
         ]},
-        { name: "Aaron Wofford", score: 105, details: [
+        { name: "Aaron Wofford", score: 290, details: [
           { label: "302 Calls > 250", points: 25 },
-          { label: "16 Covers", points: 80 }
+          { label: "16 Covers", points: 80 },
+          { label: "Week 2 — 37 Covers", points: 185 }
         ]},
-        { name: "Bobby Meyer", score: 185, details: [
+        { name: "Bobby Meyer", score: 265, details: [
           { label: "353 Calls > 250", points: 50 },
           { label: "25 Covers", points: 125 },
-          { label: "2 Group Covers", points: 10 }
+          { label: "2 Group Covers", points: 10 },
+          { label: "Week 2 — 16 Covers", points: 80 }
         ]}
       ]},
       { name: "Team 2", members: [
         { name: "Jordan DeWitt (PG)", score: 0, details: [] },
-        { name: "Hau Cing", score: 130, details: [
+        { name: "Hau Cing", score: 190, details: [
           { label: "337 Calls > 250", points: 25 },
-          { label: "21 Covers", points: 105 }
+          { label: "21 Covers", points: 105 },
+          { label: "Week 2 — 12 Covers", points: 60 }
         ]},
-        { name: "Emily Smith", score: 55, details: [
+        { name: "Emily Smith", score: 70, details: [
           { label: "262 Calls > 250", points: 0 },
-          { label: "11 Covers", points: 55 }
+          { label: "11 Covers", points: 55 },
+          { label: "Week 2 — 3 Covers", points: 15 }
         ]},
         { name: "Nicholas Peffenberger", score: 0, details: [
           { label: "Eliminated (Week 1)", points: 0 }
@@ -130,14 +135,17 @@
         { name: "Jack Sullivan", score: 100, details: [
           { label: "Revenue Above Plan +$1,200 (4×$250)", points: 100 }
         ]},
-        { name: "Henry Baker", score: 240, details: [
+        { name: "Henry Baker", score: 285, details: [
           { label: "619 Calls > 250", points: 175 },
           { label: "11 Covers", points: 55 },
-          { label: "2 Group Covers", points: 10 }
+          { label: "2 Group Covers", points: 10 },
+          { label: "Week 2 — 9 Covers", points: 45 }
         ]},
-        { name: "Jared Kohn", score: 230, details: [
+        { name: "Jared Kohn", score: 255, details: [
           { label: "653 Calls > 250", points: 200 },
-          { label: "6 Covers", points: 30 }
+          { label: "6 Covers", points: 30 },
+          { label: "Week 2 — 290 Calls (Qualifier)", points: 0 },
+          { label: "Week 2 — 1 Close @ $350", points: 25 }
         ]},
         { name: "Robert Hudson", score: 50, details: [
           { label: "BR/Load > $382 (Week Avg)", points: 50 }
@@ -150,30 +158,41 @@
         { name: "Jack Heyob", score: 450, details: [
           { label: "$13,940 YOY Growth (18×$750)", points: 450 }
         ]},
-        { name: "Jared Miller", score: 40, details: [
+        { name: "Jared Miller", score: 60, details: [
           { label: "287 Calls > 250", points: 0 },
-          { label: "8 Covers", points: 40 }
+          { label: "8 Covers", points: 40 },
+          { label: "Week 2 — 4 Covers", points: 20 }
         ]},
-        { name: "Jennifer Fike", score: 0, details: [
-          { label: "Did not hit call qualifier week 1", points: 0 }
+        { name: "Jennifer Fike", score: 105, details: [
+          { label: "Did not hit call qualifier week 1", points: 0 },
+          { label: "Week 2 — 18 Covers", points: 90 },
+          { label: "Week 2 — 3 Group Covers", points: 15 }
         ]}
       ]},
       { name: "Team 5", members: [
-        { name: "James Holcomb", score: 85, details: [
+        { name: "James Holcomb", score: 340, details: [
           { label: "50 Calls (3×15)", points: 75 },
-          { label: "2 Assists", points: 10 }
+          { label: "2 Assists", points: 10 },
+          { label: "Week 2 — 33 Calls (2×15)", points: 50 },
+          { label: "Week 2 — 41 Assists", points: 205 }
         ]},
-        { name: "Matias Janice", score: 95, details: [
+        { name: "Matias Janice", score: 190, details: [
           { label: "Revenue Above Plan +$1,500 (3×$500)", points: 75 },
-          { label: "1 Close", points: 20 }
+          { label: "1 Close", points: 20 },
+          { label: "Week 2 — Revenue Above Plan +$1,500 (3×$500)", points: 75 },
+          { label: "Week 2 — 1 Close", points: 20 }
         ]},
-        { name: "Joseph Kisselle", score: 35, details: [
+        { name: "Joseph Kisselle", score: 145, details: [
           { label: "347 Calls > 250", points: 25 },
           { label: "1 Cover", points: 5 },
-          { label: "1 Group Cover", points: 5 }
+          { label: "1 Group Cover", points: 5 },
+          { label: "Week 2 — 12 Covers", points: 60 },
+          { label: "Week 2 — 10 Group Covers", points: 50 }
         ]},
-        { name: "Joseph Wolf", score: 150, details: [
-          { label: "596 Calls > 250", points: 150 }
+        { name: "Joseph Wolf", score: 160, details: [
+          { label: "596 Calls > 250", points: 150 },
+          { label: "Week 2 — 277 Calls (Qualifier)", points: 0 },
+          { label: "Week 2 — 2 Covers", points: 10 }
         ]}
       ]},
       { name: "Team 6", members: [
@@ -181,26 +200,32 @@
           { label: "2 Closes", points: 40 }
         ]},
         { name: "James McMullen", score: 0, details: [] },
-        { name: "Maddie Evanchik", score: 0, details: [
-          { label: "Did not hit call qualifier week 1", points: 0 }
+        { name: "Maddie Evanchik", score: 30, details: [
+          { label: "Did not hit call qualifier week 1", points: 0 },
+          { label: "Week 2 — 6 Covers", points: 30 }
         ]},
-        { name: "Matthew Snawder", score: 0, details: [
-          { label: "Did not hit call qualifier week 1", points: 0 }
+        { name: "Matthew Snawder", score: 25, details: [
+          { label: "Did not hit call qualifier week 1", points: 0 },
+          { label: "Week 2 — 5 Covers", points: 25 }
         ]},
-        { name: "Krish Daraji", score: 160, details: [
+        { name: "Krish Daraji", score: 255, details: [
           { label: "305 Calls > 250", points: 25 },
           { label: "26 Covers", points: 130 },
-          { label: "1 Group Cover", points: 5 }
+          { label: "1 Group Cover", points: 5 },
+          { label: "Week 2 — 19 Covers", points: 95 }
         ]}
       ]},
       { name: "Team 7", members: [
-        { name: "Andrew Connellan", score: 300, details: [
+        { name: "Andrew Connellan", score: 400, details: [
           { label: "BR > T12 +$2,560 (10×$250)", points: 250 },
-          { label: "10 Assists", points: 50 }
+          { label: "10 Assists", points: 50 },
+          { label: "Week 2 — 20 Assists", points: 100 }
         ]},
-        { name: "Sydney Tiberghien", score: 40, details: [
+        { name: "Sydney Tiberghien", score: 95, details: [
           { label: "262 Calls > 250", points: 0 },
-          { label: "8 Covers", points: 40 }
+          { label: "8 Covers", points: 40 },
+          { label: "Week 2 — 10 Covers", points: 50 },
+          { label: "Week 2 — 1 Group Cover", points: 5 }
         ]},
         { name: "Kyle Taylor", score: 25, details: [
           { label: "Revenue Above Plan +$525 (1×$500)", points: 25 }
@@ -208,10 +233,12 @@
         { name: "Eric Isaacs", score: 0, details: [] }
       ]},
       { name: "Team 8", members: [
-        { name: "Miguel Cordoba", score: 210, details: [
+        { name: "Miguel Cordoba", score: 255, details: [
           { label: "424 Calls > 250", points: 75 },
           { label: "25 Covers", points: 125 },
-          { label: "2 Group Covers", points: 10 }
+          { label: "2 Group Covers", points: 10 },
+          { label: "Week 2 — 251 Calls (Qualifier)", points: 0 },
+          { label: "Week 2 — 9 Covers", points: 45 }
         ]},
         { name: "Anthony Gordon", score: 1125, details: [
           { label: "BR > T12 +$10,942 (43×$250)", points: 1075 },
@@ -223,16 +250,21 @@
         { name: "Quinn Fashingbauer", score: 0, details: [] }
       ]},
       { name: "Team 9", members: [
-        { name: "Rachel Hack", score: 325, details: [
+        { name: "Rachel Hack", score: 475, details: [
           { label: "720 Calls > 250", points: 225 },
           { label: "17 Covers", points: 85 },
-          { label: "3 Group Covers", points: 15 }
+          { label: "3 Group Covers", points: 15 },
+          { label: "Week 2 — 450 Calls > 250 (4×50)", points: 100 },
+          { label: "Week 2 — 9 Covers", points: 45 },
+          { label: "Week 2 — 1 Group Cover", points: 5 }
         ]},
         { name: "Anthony Fambry", score: 100, details: [
           { label: "$3,330 YOY Growth (4×$750)", points: 100 }
         ]},
-        { name: "Seth Klink", score: 0, details: [
-          { label: "Did not hit call qualifier week 1", points: 0 }
+        { name: "Seth Klink", score: 155, details: [
+          { label: "Did not hit call qualifier week 1", points: 0 },
+          { label: "Week 2 — 1 Close @ $1225", points: 50 },
+          { label: "Week 2 — 21 Covers", points: 105 }
         ]},
         { name: "Andrew Hayes", score: 0, details: [
           { label: "No YOY Growth (Week 1)", points: 0 }
@@ -256,9 +288,11 @@
         ]}
       ]},
       { name: "Team 11", members: [
-        { name: "Ryan Monahan", score: 170, details: [
+        { name: "Ryan Monahan", score: 415, details: [
           { label: "574 Calls > 250", points: 150 },
-          { label: "4 Covers", points: 20 }
+          { label: "4 Covers", points: 20 },
+          { label: "Week 2 — 707 Calls > 250 (9×50)", points: 225 },
+          { label: "Week 2 — 4 Covers", points: 20 }
         ]},
         { name: "Brian Amshoff", score: 400, details: [
           { label: "$11,124 YOY Growth (14×$750)", points: 350 },
