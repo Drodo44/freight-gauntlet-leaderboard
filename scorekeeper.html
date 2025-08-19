@@ -7,16 +7,17 @@
 <style>
   body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,Helvetica,sans-serif;background:#0e1a28;color:#eaf1ff;margin:0}
   header{background:#132a4e;padding:12px 16px;font-weight:700}
-  .wrap{display:grid;grid-template-columns:360px 1fr;gap:16px;padding:16px}
+  .wrap{display:grid;grid-template-columns:380px 1fr;gap:16px;padding:16px}
   .card{background:#1b2a3c;border:1px solid #274060;border-radius:10px;padding:12px}
   label{display:block;font-size:12px;color:#a9bed9;margin-top:8px}
   input[type="number"],select{width:100%;padding:8px;border-radius:6px;border:1px solid #274060;background:#0e1a28;color:#fff}
   .row{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
-  button{background:#48bb78;border:0;color:#0b1a2c;font-weight:700;padding:10px 12px;border-radius:8px;cursor:pointer;margin-top:10px}
+  button{border:0;color:#0b1a2c;font-weight:700;padding:10px 12px;border-radius:8px;cursor:pointer;margin-top:10px}
+  .primary{background:#48bb78}.accent{background:#4299e1;color:#061624}.warn{background:#f6ad55;color:#1b2a3c}
   table{width:100%;border-collapse:collapse;margin-top:10px}
   th,td{border-bottom:1px solid #274060;padding:6px 8px;font-size:12px;vertical-align:top}
   .muted{color:#a9bed9;font-size:12px;margin-top:6px}
-  .ok{color:#b7f7c2}.warn{color:#ffd37a}.err{color:#ff9da3}
+  .ok{color:#b7f7c2}.warn-t{color:#ffd37a}.err{color:#ff9da3}
   .preview{max-height:70vh;overflow:auto}
 </style>
 </head>
@@ -43,7 +44,7 @@
 
     <div class="row">
       <div><label>Closes ≥$382 (or any closes for non-LAET)</label><input id="cl_ge" type="number" min="0" step="1"></div>
-      <div><label>Revenue Above Plan ($)</label><input id="rap" type="number" min="0" step="1" placeholder="PG uses $250 blocks, Junior $500"></div>
+      <div><label>Revenue Above Plan ($)</label><input id="rap" type="number" min="0" step="1" placeholder="PG=$250 blocks • Junior=$500"></div>
     </div>
 
     <div class="row">
@@ -59,11 +60,12 @@
       </div>
     </div>
 
-    <button id="apply">Apply (Replace Week 2 totals)</button>
-    <button id="reset" style="background:#f6ad55;color:#1b2a3c">Reset Week 2 for member</button>
-    <div class="muted">Replaces any existing “Week 2 — …” lines for this member, then adds the new ones.</div>
+    <button id="applyReplace" class="primary">Apply — Replace Week 2</button>
+    <button id="applyAdd" class="accent">Apply — Add (incremental)</button>
+    <button id="reset" class="warn">Reset Week 2 for member</button>
+    <div class="muted">Replace = use week-to-date totals. Add = treat inputs as new achievements only.</div>
 
-    <button id="download">Download Updated index.html</button>
+    <button id="download" class="primary" style="width:100%;margin-top:12px">Download Updated index.html</button>
     <div id="status" class="muted" style="margin-top:8px;"></div>
   </div>
 
@@ -361,45 +363,61 @@ function scoreFromEntry(entry, role){
 }
 
 /* ====== APPLY / RESET ====== */
-document.getElementById('apply').onclick = () => {
+document.getElementById('applyReplace').onclick = () => applyUpdate({mode:'replace'});
+document.getElementById('applyAdd').onclick      = () => applyUpdate({mode:'add'});
+document.getElementById('reset').onclick         = () => resetMember();
+
+function applyUpdate({mode}){
   const name = memberSel.value;
-  if(!name){ status('Pick a member first.', 'err'); return; }
-  if(ELIMINATED.has(name)){ status('Cannot score eliminated player.', 'err'); return; }
+  if(!name){ return status('Pick a member first.', 'err'); }
+  if(ELIMINATED.has(name)){ return status('Cannot score eliminated player.', 'err'); }
+
   const role = roles.get(name) || "LAET";
   const payload = {
-    calls: document.getElementById('calls').value,
-    covers: document.getElementById('covers').value,
-    gcovers: document.getElementById('gcovers').value,
-    cl_lt: document.getElementById('cl_lt').value,
-    cl_ge: document.getElementById('cl_ge').value,
-    rap: document.getElementById('rap').value,
-    t12: document.getElementById('t12').value,
-    yoy: document.getElementById('yoy').value,
-    assists: document.getElementById('assists').value,
-    brload: document.getElementById('brload').value
+    calls:     document.getElementById('calls').value,
+    covers:    document.getElementById('covers').value,
+    gcovers:   document.getElementById('gcovers').value,
+    cl_lt:     document.getElementById('cl_lt').value,
+    cl_ge:     document.getElementById('cl_ge').value,
+    rap:       document.getElementById('rap').value,
+    t12:       document.getElementById('t12').value,
+    yoy:       document.getElementById('yoy').value,
+    assists:   document.getElementById('assists').value,
+    brload:    document.getElementById('brload').value
   };
+
   const {pts, lines} = scoreFromEntry(payload, role);
   const {teamIdx, memberIdx} = findMember(name);
-  if(teamIdx<0){ status(`Member not found: ${name}`, 'err'); return; }
+  if(teamIdx<0){ return status(`Member not found: ${name}`, 'err'); }
   const m = teams[teamIdx].members[memberIdx];
-  const removed = removeWeek2(m);
-  m.score -= removed;
+
+  let removed = 0;
+  if(mode==='replace'){
+    removed = removeWeek2(m);
+    m.score -= removed;
+  }
   lines.forEach(l => m.details.push({label:l.label, points:l.points}));
   m.score += pts;
-  status(`${name} (${role}) — replaced Week 2: +${pts} pts (removed ${removed})`, 'ok');
+
+  const net = pts - removed;
+  const verb = mode==='replace'
+    ? `replaced Week 2 — Added ${pts}, Removed ${removed}, Net ${net >=0?'+':''}${net}`
+    : `added Week 2 — Added ${pts}, Net +${pts}`;
+  status(`${name} (${role}) — ${verb}`, net>=0?'ok':'warn-t');
   renderPreview();
-};
-document.getElementById('reset').onclick = () => {
+}
+
+function resetMember(){
   const name = memberSel.value;
-  if(!name){ status('Pick a member first.', 'err'); return; }
+  if(!name){ return status('Pick a member first.', 'err'); }
   const {teamIdx, memberIdx} = findMember(name);
-  if(teamIdx<0){ status(`Member not found: ${name}`, 'err'); return; }
+  if(teamIdx<0){ return status(`Member not found: ${name}`, 'err'); }
   const m = teams[teamIdx].members[memberIdx];
   const removed = removeWeek2(m);
   m.score -= removed;
-  status(`${name} — Week 2 cleared (removed ${removed} pts)`, 'warn');
+  status(`${name} — Week 2 cleared (removed ${removed} pts)`, 'warn-t');
   renderPreview();
-};
+}
 
 /* ====== DOWNLOAD index.html ====== */
 document.getElementById('download').onclick = () => {
@@ -488,22 +506,14 @@ function renderPreview(){
     .silver .name, .silver .score { color: #C0C0C0; }
     .bronze .name, .bronze .score { color: #CD7F32; }
     .eliminated .name, .eliminated .score { color: #FF4C4C; }
-    .score-change { animation: scoreFlash 1s ease-in-out; }
-    @keyframes scoreFlash { 0% { background-color: #274060; } 50% { background-color: #1b2a3c; } 100% { background-color: transparent; } }
-    .rules-section { margin-top: 40px; }
-    .rules-section summary { cursor: pointer; background-color: #1b2a3c; padding: 14px 20px; border-radius: 12px; font-size: 1.1em; font-weight: 600; }
-    .rules-content { padding: 16px 20px; background-color: #16243b; border-radius: 0 0 12px 12px; border-top: 1px solid #274060; }
-    .rules-content h3 { margin-top: 16px; font-size: 1.1em; font-weight: 600; }
-    .rules-content p, .rules-content li { font-size: 0.9em; line-height: 1.4; }
+    .leaderboards { display: flex; flex-wrap: wrap; gap: 2rem; margin-top: 20px; }
+    .leaderboards > div { flex: 1 1 50%; }
     .top-card { background-color: #1b2a3c; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.4); padding: 16px 20px; margin-bottom: 25px; }
     .top-card h3 { margin-top: 0; margin-bottom: 10px; font-size: 1.4em; font-weight: 600; }
     .top-list { list-style: none; margin: 0; padding: 0; }
     .top-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #274060; }
     .top-item:last-child { border-bottom: none; }
     .rank { font-weight: bold; margin-right: 8px; }
-    .leaderboards { display: flex; flex-wrap: wrap; gap: 2rem; margin-top: 20px; }
-    .leaderboards > div { flex: 1 1 50%; }
-    .leaderboards .top-card { margin-bottom: 20px; }
   </style>
 </head>
 <body>
@@ -514,127 +524,31 @@ function renderPreview(){
       <div id="team-board"></div>
     </div>
     <div id="leaderboard"></div>
-
-    <div class="rules-section">
-      <details>
-        <summary>Competition Rules & Scoring Guide</summary>
-        <div class="rules-content">
-          <h3>Competition Structure</h3>
-          <p>Freight Gauntlet is a 2-week, 2-round competition. Each of 11 teams starts with four players, except Team 11 which has five. Individual scores accumulate to team totals. The bottom five individual scorers after week 1 are eliminated.</p>
-          <h3>Scoring by Role</h3>
-          <ul>
-            <li><strong>LAET:</strong> 250 calls = Qualifier; +25 pts per 50 calls above 250; +5 pts per cover/group cover; +25 pts per prospecting close &lt;$382; +50 pts per prospecting close &gt;$382; +50 pts if BR/Load avg &gt; $382.</li>
-            <li><strong>Proving Grounds/Junior:</strong> 350/250 calls qualifier; +15 pts per 25 calls above baseline; +20 pts per close; +25 pts per $250 (PG) / $500 (Junior) revenue above plan; +50 pts if BR/Load avg &gt; $382.</li>
-            <li><strong>LAE &gt;5k:</strong> 50 calls = Qualifier; +20 pts per 25 calls above 50; +25 pts per $250 BR &gt; T12; +20 pts per close; +5 pts per assist; +50 pts if BR/Load avg &gt; $382.</li>
-            <li><strong>Vet (5+ years):</strong> +25 pts per $750 YOY growth; +25 pts per 15 calls; +5 pts per assist; +50 pts if BR/Load avg &gt; $382.</li>
-          </ul>
-        </div>
-      </details>
-    </div>
   </div>
-
   <script>
-    const accentColors = ['#5A67D8','#ED8936','#48BB78','#D53F8C','#4299E1','#ECC94B','#F6AD55','#4FD1C5','#9F7AEA','#38B2AC','#F56565'];
-    const ELIMINATED = new Set(["Clarens Legagneur","Nicholas Peffenberger","Jacob Archer","Justin Bagent","Courtney Monroy"]);
-    const teams = __TEAMS_JSON__;
-
-    function renderLeaderboard() {
-      const allMembers = [];
-      teams.forEach(t => {
-        t.total = t.members.reduce((sum, m) => sum + (m.score || 0), 0);
-        t.members.forEach(m => allMembers.push({ name: m.name, score: m.score, team: t.name }));
-      });
-
-      const nonElim = allMembers.filter(m => !ELIMINATED.has(m.name));
-      const minScore = nonElim.length ? Math.min(...nonElim.map(m => m.score)) : 0;
-      const flagged = new Set(nonElim.filter(m => m.score === minScore).map(m => m.name));
-
-      const sortedTeams = [...teams].sort((a,b)=>b.total-a.total);
-      const topOverall = [...allMembers].sort((a,b)=>b.score-a.score).slice(0,5);
-      const top3Names = topOverall.slice(0,3).map(m=>m.name);
-
-      const teamBoard = document.getElementById('team-board');
-      teamBoard.innerHTML = '';
-      const teamCard = document.createElement('div'); teamCard.className = 'top-card';
-      teamCard.innerHTML = '<h3>Team Leaderboard</h3>';
-      const teamList = document.createElement('ul'); teamList.className='top-list';
-      sortedTeams.forEach((t,i)=>{
-        const li = document.createElement('li'); li.className='top-item';
-        li.innerHTML = \`<span class="rank">#\${i+1}</span><span>\${t.name}</span><span>\${t.total} pts</span>\`;
-        teamList.appendChild(li);
-      });
-      teamCard.appendChild(teamList); teamBoard.appendChild(teamCard);
-
-      const topContainer = document.getElementById('top-leaderboard');
-      topContainer.innerHTML = '';
-      const topCard = document.createElement('div'); topCard.className='top-card';
-      topCard.innerHTML = '<h3>Top 5 Scorers Overall</h3>';
-      const topList = document.createElement('ul'); topList.className='top-list';
-      topOverall.forEach((p,i)=>{
-        const li = document.createElement('li'); li.className='top-item';
-        li.innerHTML = \`<span class="rank">#\${i+1}</span><span>\${p.name}</span><span>\${p.score} pts</span>\`;
-        topList.appendChild(li);
-      });
-      topCard.appendChild(topList); topContainer.appendChild(topCard);
-
-      const leaderboard = document.getElementById('leaderboard'); leaderboard.innerHTML = '';
-      teams.forEach((team, idx) => {
-        const card = document.createElement('div'); card.className='team-card';
-        const header = document.createElement('div'); header.className='team-header';
-        header.style.background = \`linear-gradient(135deg, \${accentColors[idx % accentColors.length]} 0%, #0d3b66 100%)\`;
-        card.style.borderLeft = \`8px solid \${accentColors[idx % accentColors.length]}\`;
-        header.innerHTML = \`<h2>\${team.name}</h2><div class="total-score">Total: \${team.total} pts</div>\`;
-        card.appendChild(header);
-
-        let mvpName = ''; let mvpScore = -1;
-        team.members.forEach(m => { if ((m.score||0) > mvpScore) { mvpScore = m.score||0; mvpName = m.name; } });
-
-        const ul = document.createElement('ul'); ul.className='member-list';
-        team.members.forEach(member => {
-          const details = document.createElement('details');
-          const summary = document.createElement('summary'); summary.className='member';
-
-          let icon = '';
-          if (ELIMINATED.has(member.name)) icon = '☠️';
-          else if (top3Names.includes(member.name)) {
-            const i = top3Names.indexOf(member.name); icon = i===0?'🥇':i===1?'🥈':'🥉';
-          } else if (flagged.has(member.name)) icon = '🚩';
-          else if (member.name === mvpName && (member.score||0)>0) icon = '👑';
-
-          if (ELIMINATED.has(member.name) || flagged.has(member.name)) summary.classList.add('eliminated');
-          else if (top3Names.includes(member.name)) {
-            const i = top3Names.indexOf(member.name);
-            summary.classList.add(i===0?'gold':i===1?'silver':'bronze');
-          }
-
-          const nameDiv = document.createElement('div'); nameDiv.className='name';
-          if (icon) { const s=document.createElement('span'); s.className='icon'; s.textContent=icon; nameDiv.appendChild(s); }
-          const nameText = document.createElement('span'); nameText.textContent = member.name; nameDiv.appendChild(nameText);
-
-          const scoreDiv = document.createElement('div'); scoreDiv.className='score'; scoreDiv.textContent = \`\${member.score} pts\`;
-
+    const accentColors=['#5A67D8','#ED8936','#48BB78','#D53F8C','#4299E1','#ECC94B','#F6AD55','#4FD1C5','#9F7AEA','#38B2AC','#F56565'];
+    const ELIMINATED=new Set(["Clarens Legagneur","Nicholas Peffenberger","Jacob Archer","Justin Bagent","Courtney Monroy"]);
+    const teams=__TEAMS_JSON__;
+    function renderLeaderboard(){
+      const all=[]; teams.forEach(t=>{t.total=t.members.reduce((s,m)=>s+(m.score||0),0); t.members.forEach(m=>all.push({name:m.name,score:m.score,team:t.name}));});
+      const nonElim=all.filter(m=>!ELIMINATED.has(m.name)); const min=nonElim.length?Math.min(...nonElim.map(m=>m.score)):0; const flagged=new Set(nonElim.filter(m=>m.score===min).map(m=>m.name));
+      const top=[...all].sort((a,b)=>b.score-a.score).slice(0,5); const top3=top.slice(0,3).map(m=>m.name);
+      const tb=document.getElementById('team-board'); tb.innerHTML=''; const tcard=document.createElement('div'); tcard.className='top-card'; tcard.innerHTML='<h3>Team Leaderboard</h3>'; const tlist=document.createElement('ul'); tlist.className='top-list';
+      [...teams].sort((a,b)=>b.total-a.total).forEach((t,i)=>{const li=document.createElement('li'); li.className='top-item'; li.innerHTML=\`<span class="rank">#\${i+1}</span><span>\${t.name}</span><span>\${t.total} pts</span>\`; tlist.appendChild(li);}); tcard.appendChild(tlist); tb.appendChild(tcard);
+      const topC=document.getElementById('top-leaderboard'); topC.innerHTML=''; const tc=document.createElement('div'); tc.className='top-card'; tc.innerHTML='<h3>Top 5 Scorers Overall</h3>'; const tl=document.createElement('ul'); tl.className='top-list';
+      top.forEach((p,i)=>{const li=document.createElement('li'); li.className='top-item'; li.innerHTML=\`<span class="rank">#\${i+1}</span><span>\${p.name}</span><span>\${p.score} pts</span>\`; tl.appendChild(li);}); tc.appendChild(tl); topC.appendChild(tc);
+      const lb=document.getElementById('leaderboard'); lb.innerHTML=''; teams.forEach((team,idx)=>{const card=document.createElement('div'); card.className='team-card'; const header=document.createElement('div'); header.className='team-header'; header.style.background=\`linear-gradient(135deg, \${accentColors[idx%accentColors.length]} 0%, #0d3b66 100%)\`; card.style.borderLeft=\`8px solid \${accentColors[idx%accentColors.length]}\`; header.innerHTML=\`<h2>\${team.name}</h2><div class="total-score">Total: \${team.total} pts</div>\`; card.appendChild(header);
+        let mvpName='',mvpScore=-1; team.members.forEach(m=>{if((m.score||0)>mvpScore){mvpScore=m.score||0;mvpName=m.name;}});
+        const ul=document.createElement('ul'); ul.className='member-list'; team.members.forEach(member=>{const details=document.createElement('details'); const summary=document.createElement('summary'); summary.className='member';
+          let icon=''; if(ELIMINATED.has(member.name)) icon='☠️'; else if(top3.includes(member.name)){const i=top3.indexOf(member.name); icon=i===0?'🥇':i===1?'🥈':'🥉';} else if(flagged.has(member.name)) icon='🚩'; else if(member.name===mvpName && (member.score||0)>0) icon='👑';
+          if(ELIMINATED.has(member.name)||flagged.has(member.name)) summary.classList.add('eliminated'); else if(top3.includes(member.name)){const i=top3.indexOf(member.name); summary.classList.add(i===0?'gold':i===1?'silver':'bronze');}
+          const nameDiv=document.createElement('div'); nameDiv.className='name'; if(icon){const s=document.createElement('span'); s.className='icon'; s.textContent=icon; nameDiv.appendChild(s);} const nameText=document.createElement('span'); nameText.textContent=member.name; nameDiv.appendChild(nameText);
+          const scoreDiv=document.createElement('div'); scoreDiv.className='score'; scoreDiv.textContent=\`\${member.score} pts\`;
           summary.appendChild(nameDiv); summary.appendChild(scoreDiv);
-
-          const detailsContent = document.createElement('div'); detailsContent.className='details-content';
-          if (member.details && member.details.length) {
-            const ulDet = document.createElement('ul');
-            member.details.forEach(d => {
-              const li = document.createElement('li'); li.textContent = \`\${d.label}: \${d.points} pts\`;
-              ulDet.appendChild(li);
-            });
-            const liT = document.createElement('li'); liT.innerHTML = \`<strong>Total</strong>: \${member.score} pts\`;
-            ulDet.appendChild(liT);
-            detailsContent.appendChild(ulDet);
-          } else {
-            const p = document.createElement('p'); p.textContent = 'No points awarded yet.'; detailsContent.appendChild(p);
-          }
-
-          details.appendChild(summary); details.appendChild(detailsContent);
-          const li = document.createElement('li'); li.appendChild(details); ul.appendChild(li);
-        });
-
-        card.appendChild(ul); leaderboard.appendChild(card);
-      });
+          const dc=document.createElement('div'); dc.className='details-content';
+          if(member.details&&member.details.length){const u=document.createElement('ul'); member.details.forEach(d=>{const li=document.createElement('li'); li.textContent=\`\${d.label}: \${d.points} pts\`; u.appendChild(li);}); const t=document.createElement('li'); t.innerHTML=\`<strong>Total</strong>: \${member.score} pts\`; u.appendChild(t); dc.appendChild(u);} else {const p=document.createElement('p'); p.textContent='No points awarded yet.'; dc.appendChild(p);}
+          details.appendChild(summary); details.appendChild(dc); const li=document.createElement('li'); li.appendChild(details); ul.appendChild(li);});
+        card.appendChild(ul); lb.appendChild(card);});
     }
     renderLeaderboard();
   </script>
