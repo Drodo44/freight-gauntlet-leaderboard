@@ -29,7 +29,7 @@
     <div style="font-weight:700;margin-bottom:8px">Add / Replace Week 2 Totals</div>
 
     <label>Member</label>
-    <select id="member"></select>
+    <select id="member"><option value="" disabled selected>— select —</option></select>
 
     <div class="row">
       <div><label>Calls</label><input id="calls" type="number" min="0" step="1" placeholder="e.g. 707"></div>
@@ -96,7 +96,7 @@ const roles = new Map([
   ["Nicholas Nguyen","VET"],["Robert Hudson","VET"],["Andrew Hayes","VET"],["Dustin Schneider","VET"],["Nicholas Peffenberger","VET"]
 ]);
 
-/* ====== TEAMS SNAPSHOT (from your current index.html with Week 2 Day 1 + latest updates) ====== */
+/* ====== TEAMS SNAPSHOT (same as index.html; includes your latest updates) ====== */
 let teams = [
   { "name": "Team 1", "members": [
     { "name": "Nicholas Nguyen", "score": 375, "details": [
@@ -291,13 +291,16 @@ const memberSel = document.getElementById('member');
 const preview = document.getElementById('preview');
 const statusEl = document.getElementById('status');
 
-(function init(){
+window.addEventListener('DOMContentLoaded', () => {
+  // Populate member dropdown
   const names = [];
   teams.forEach(t => t.members.forEach(m => names.push(m.name)));
   names.sort((a,b)=>a.localeCompare(b));
-  names.forEach(n=>{ const o=document.createElement('option'); o.textContent=n; o.value=n; memberSel.appendChild(o); });
+  names.forEach(n=>{
+    const o=document.createElement('option'); o.textContent=n; o.value=n; memberSel.appendChild(o);
+  });
   renderPreview();
-})();
+});
 
 /* ====== SCORING ====== */
 const num = v => Math.max(0, Number(v||0));
@@ -368,6 +371,7 @@ function scoreFromEntry(entry, role){
 /* ====== APPLY / RESET ====== */
 document.getElementById('apply').onclick = () => {
   const name = memberSel.value;
+  if(!name){ status('Pick a member first.', 'err'); return; }
   if(ELIMINATED.has(name)){ status('Cannot score eliminated player.', 'err'); return; }
   const role = roles.get(name) || "LAET";
   const payload = {
@@ -398,6 +402,7 @@ document.getElementById('apply').onclick = () => {
 
 document.getElementById('reset').onclick = () => {
   const name = memberSel.value;
+  if(!name){ status('Pick a member first.', 'err'); return; }
   const {teamIdx, memberIdx} = findMember(name);
   if(teamIdx<0){ status(`Member not found: ${name}`, 'err'); return; }
   const m = teams[teamIdx].members[memberIdx];
