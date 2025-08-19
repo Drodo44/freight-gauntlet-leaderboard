@@ -96,7 +96,7 @@ const roles = new Map([
   ["Nicholas Nguyen","VET"],["Robert Hudson","VET"],["Andrew Hayes","VET"],["Dustin Schneider","VET"],["Nicholas Peffenberger","VET"]
 ]);
 
-/* ====== TEAMS SNAPSHOT (same as index.html; includes your latest updates) ====== */
+/* ====== TEAMS SNAPSHOT (current) ====== */
 let teams = [
   { "name": "Team 1", "members": [
     { "name": "Nicholas Nguyen", "score": 375, "details": [
@@ -292,7 +292,6 @@ const preview = document.getElementById('preview');
 const statusEl = document.getElementById('status');
 
 window.addEventListener('DOMContentLoaded', () => {
-  // Populate member dropdown
   const names = [];
   teams.forEach(t => t.members.forEach(m => names.push(m.name)));
   names.sort((a,b)=>a.localeCompare(b));
@@ -304,10 +303,8 @@ window.addEventListener('DOMContentLoaded', () => {
 
 /* ====== SCORING ====== */
 const num = v => Math.max(0, Number(v||0));
-
 function scoreFromEntry(entry, role){
   const lines=[]; let pts=0;
-
   if(role==="LAET"){
     const calls=num(entry.calls);
     if(calls>=250){
@@ -320,8 +317,7 @@ function scoreFromEntry(entry, role){
     const clLt=num(entry.cl_lt); if(clLt){ pts+=clLt*25; lines.push({label:`Week 2 — ${clLt} Close(s) < $382`, points:clLt*25}); }
     const clGe=num(entry.cl_ge); if(clGe){ pts+=clGe*50; lines.push({label:`Week 2 — ${clGe} Close(s) ≥ $382`, points:clGe*50}); }
     if(entry.brload==="yes"){ pts+=50; lines.push({label:`Week 2 — BR/Load > $382 (Week Avg)`, points:50}); }
-  }
-  else if(role==="PG"){
+  } else if(role==="PG"){
     const calls=num(entry.calls);
     if(calls>=350){
       const blocks=Math.floor((calls-350)/25);
@@ -332,8 +328,7 @@ function scoreFromEntry(entry, role){
     if(closes){ pts+=closes*20; lines.push({label:`Week 2 — ${closes} Close(s)`, points:closes*20}); }
     const rap=num(entry.rap); if(rap){ const blocks=Math.floor(rap/250); if(blocks>0){ pts+=blocks*25; lines.push({label:`Week 2 — Revenue Above Plan +$${rap} (${blocks}×$250)`, points:blocks*25}); } }
     if(entry.brload==="yes"){ pts+=50; lines.push({label:`Week 2 — BR/Load > $382 (Week Avg)`, points:50}); }
-  }
-  else if(role==="JUNIOR"){
+  } else if(role==="JUNIOR"){
     const calls=num(entry.calls);
     if(calls>=250){
       const blocks=Math.floor((calls-250)/25);
@@ -344,8 +339,7 @@ function scoreFromEntry(entry, role){
     if(closes){ pts+=closes*20; lines.push({label:`Week 2 — ${closes} Close(s)`, points:closes*20}); }
     const rap=num(entry.rap); if(rap){ const blocks=Math.floor(rap/500); if(blocks>0){ pts+=blocks*25; lines.push({label:`Week 2 — Revenue Above Plan +$${rap} (${blocks}×$500)`, points:blocks*25}); } }
     if(entry.brload==="yes"){ pts+=50; lines.push({label:`Week 2 — BR/Load > $382 (Week Avg)`, points:50}); }
-  }
-  else if(role==="LAE5K"){
+  } else if(role==="LAE5K"){
     const calls=num(entry.calls);
     if(calls>=50){
       const blocks=Math.floor((calls-50)/25);
@@ -357,14 +351,12 @@ function scoreFromEntry(entry, role){
     if(closes){ pts+=closes*20; lines.push({label:`Week 2 — ${closes} Close(s)`, points:closes*20}); }
     const assists=num(entry.assists); if(assists){ pts+=assists*5; lines.push({label:`Week 2 — ${assists} Assist(s)`, points:assists*5}); }
     if(entry.brload==="yes"){ pts+=50; lines.push({label:`Week 2 — BR/Load > $382 (Week Avg)`, points:50}); }
-  }
-  else if(role==="VET"){
+  } else if(role==="VET"){
     const yoy=num(entry.yoy); if(yoy){ const blocks=Math.floor(yoy/750); if(blocks>0){ pts+=blocks*25; lines.push({label:`Week 2 — YOY Growth +$${yoy} (${blocks}×$750)`, points:blocks*25}); } }
     const calls=num(entry.calls); if(calls){ const blocks=Math.floor(calls/15); if(blocks>0){ pts+=blocks*25; lines.push({label:`Week 2 — ${calls} Calls (${blocks}×15)`, points:blocks*25}); } }
     const assists=num(entry.assists); if(assists){ pts+=assists*5; lines.push({label:`Week 2 — ${assists} Assist(s)`, points:assists*5}); }
     if(entry.brload==="yes"){ pts+=50; lines.push({label:`Week 2 — BR/Load > $382 (Week Avg)`, points:50}); }
   }
-
   return {pts, lines};
 }
 
@@ -390,16 +382,13 @@ document.getElementById('apply').onclick = () => {
   const {teamIdx, memberIdx} = findMember(name);
   if(teamIdx<0){ status(`Member not found: ${name}`, 'err'); return; }
   const m = teams[teamIdx].members[memberIdx];
-
   const removed = removeWeek2(m);
   m.score -= removed;
   lines.forEach(l => m.details.push({label:l.label, points:l.points}));
   m.score += pts;
-
   status(`${name} (${role}) — replaced Week 2: +${pts} pts (removed ${removed})`, 'ok');
   renderPreview();
 };
-
 document.getElementById('reset').onclick = () => {
   const name = memberSel.value;
   if(!name){ status('Pick a member first.', 'err'); return; }
@@ -414,7 +403,8 @@ document.getElementById('reset').onclick = () => {
 
 /* ====== DOWNLOAD index.html ====== */
 document.getElementById('download').onclick = () => {
-  const html = buildIndexHtml(teams);
+  const tpl = document.getElementById('index-template').innerHTML;
+  const html = tpl.replace('__TEAMS_JSON__', JSON.stringify(teams, null, 2));
   const blob = new Blob([html], {type:'text/html'});
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
@@ -443,30 +433,26 @@ function removeWeek2(member){
   });
   return removed;
 }
-
 function renderPreview(){
   const tcopy = JSON.parse(JSON.stringify(teams));
   tcopy.forEach(t => t.total = t.members.reduce((s,m)=>s+(m.score||0),0));
   const sortedTeams = [...tcopy].sort((a,b)=>b.total-a.total);
-
   let html = '<table><thead><tr><th>Rank</th><th>Team</th><th>Total</th></tr></thead><tbody>';
   sortedTeams.forEach((t,i)=>{ html += `<tr><td>#${i+1}</td><td>${t.name}</td><td>${t.total} pts</td></tr>`; });
   html += '</tbody></table>';
-
   const all = [];
   tcopy.forEach(t=>t.members.forEach(m=>all.push({name:m.name,score:m.score,team:t.name})));
   all.sort((a,b)=>b.score-a.score);
   html += '<table><thead><tr><th colspan="3">Top 5 Individuals</th></tr></thead><tbody>';
   all.slice(0,5).forEach((p,i)=>{ html += `<tr><td>#${i+1}</td><td>${p.name}</td><td>${p.score} pts</td></tr>`; });
   html += '</tbody></table>';
-
   preview.innerHTML = html;
 }
+</script>
 
-/* ====== Build final index.html (same layout/logic as your site) ====== */
-function buildIndexHtml(data){
-  const teamsJson = JSON.stringify(data, null, 2);
-  return `<!DOCTYPE html>
+<!-- ========= INDEX.HTML TEMPLATE (inert) ========= -->
+<template id="index-template"><!--
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -550,7 +536,7 @@ function buildIndexHtml(data){
   <script>
     const accentColors = ['#5A67D8','#ED8936','#48BB78','#D53F8C','#4299E1','#ECC94B','#F6AD55','#4FD1C5','#9F7AEA','#38B2AC','#F56565'];
     const ELIMINATED = new Set(["Clarens Legagneur","Nicholas Peffenberger","Jacob Archer","Justin Bagent","Courtney Monroy"]);
-    const teams = ${teamsJson};
+    const teams = __TEAMS_JSON__;
 
     function renderLeaderboard() {
       const allMembers = [];
@@ -653,8 +639,7 @@ function buildIndexHtml(data){
     renderLeaderboard();
   </script>
 </body>
-</html>`;
-}
-</script>
+</html>
+--></template>
 </body>
 </html>
